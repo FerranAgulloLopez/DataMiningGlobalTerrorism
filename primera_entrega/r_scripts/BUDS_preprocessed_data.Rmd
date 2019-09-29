@@ -1,0 +1,527 @@
+---
+pdf_document: default
+author: "Team 2 Group 11"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+title: "Descriptive statistics of variables after preprocessing"
+header-includes:
+- \usepackage{lscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(comment = NA)
+```
+
+Descriptive statistcs:
+  
+```{r  warning=FALSE}
+
+if(!require(moments))install.packages("moments"); require(moments)
+```
+
+Loading dataset:
+
+```{r}
+mydata = read.csv("preprocessed_dataset.csv")
+
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+```
+
+
+
+#### 2.1. Variable provstate
+```{r}
+summary(mydata$provstate)
+f<-table(mydata$provstate)
+barplot(f)
+```
+
+As we can see in the barplot, California and New York are the most attacked states, much more than any other state.
+
+#### 2.2. Variable city
+```{r}
+summary(mydata$city)
+f<-table(mydata$city)
+barplot(f)
+```
+
+This is a barplot representing the amount of registered incidents per city. 449 of them occured in New York City, more than four times more than the second city with more incidents (San Juan, 107 registers).
+
+#### 2.3. Variable latitude
+Because of the purpose of latitude in this study, it's not really relevant to analyze and visualize it now.
+```{r}
+summary(mydata$latitude)
+```
+
+#### 2.4. Variable longitude
+Because of the purpose of longitude in this study, it's not really relevant to analyze and visualize it now.
+```{r}
+summary(mydata$longitude)
+```
+
+#### 2.5. Variable doubtterr
+Because of the meaning of this variable, it's not necessary to give an analysis of it.
+```{r}
+summary(mydata$doubtterr)
+```
+
+
+#### 2.6. Variable success
+```{r}
+summary(mydata$success)
+```
+As a logical variable we will represent it with a pie chart.
+```{r}
+f<-table(mydata$success)
+f1=as.data.frame(f)
+
+slices <- f1[2]
+lbls1 <- f1[1]
+pct <- round(slices/sum(slices)*100)
+lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
+lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
+pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
+   main="Pie Chart of variable success")
+
+```
+
+We can see that there are many more successful acts (82%) than unsuccessful ones (18%).
+
+#### 2.7. Variable attacktype1_txt
+```{r}
+summary(mydata$attacktype1_txt)
+```
+
+```{r}
+Mode(mydata$attacktype1_txt)
+```
+The most common method of attack type is "Bombing/Explosion".
+```{r}
+f<-table(mydata$attacktype1_txt)
+f1=as.data.frame(f)
+slices <- f1[2]
+lbls1 <- f1[1]
+pct <- round(slices/sum(slices)*100)
+lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
+lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
+pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
+   main="Pie Chart of variable attacktype1_txt")
+
+```
+
+The category which has most acts is "Bombing/Explosion" which has 49% of the acts, followed by "Facility/Infrastructure Attack" with 31%.
+
+#### 2.8. Variable targtype1_txt
+```{r}
+summary(mydata$targtype1_txt)
+```
+
+```{r}
+Mode(mydata$targtype1_txt)
+```
+The most common target type is "Business".
+
+```{r}
+f<-table(mydata$targtype1_txt)
+barplot(f)
+```
+
+The "Business" target type has 28% of the records.
+
+
+#### 2.9. Variable natlty1_txt
+```{r}
+summary(mydata$natlty1_txt)
+```
+Obviously the vast majority of the attacks are targeted towards the United States since that is the country we are studying.
+
+We will remove the value United States in order to make a proper comparison between the other values.
+```{r}
+f<-table(mydata$natlty1_txt)
+f<-f[-c(53)]
+barplot(f)
+```
+
+As we see in those plots there are some nationalities that receive more acts of terrorism than others. Those are the cases of "Puerto Rico" with 60, "Soviet Union" with 45 and "Cuba" with 20.
+
+#### 2.10. Variable gname
+```{r}
+summary(mydata$gname)
+```
+
+```{r}
+Mode(mydata$gname)
+```
+Most of the acts of terrorism were either claimed by individuals or an unknown group.
+```{r}
+f<-table(mydata$gname)
+barplot(f)
+```
+
+As we can see in this barplot there are a lot of group names. The one with more associated acts is "Anti-Abortion extremists" with 196 followed by "Left-Wing Militants" with 169.
+
+#### 2.11. Variable nperps
+```{r}
+summary(mydata$nperps)
+```
+The minimun value is 1 because it makes no sense that no perpetrator has commited a crime. In preprocessing we corrected those values by changing them to NA. 
+```{r}
+boxplot(mydata$nperps)
+```
+
+As we can see in this boxplot most of the acts of terrorism in the United States were perpetrated by individuals that worked alone.
+
+```{r}
+skewness(mydata$nperps,na.rm = TRUE)
+```
+This value tells us that this variable is asimetric, just as we have seen in the boxplot.
+```{r}
+kurtosis(mydata$nperps,na.rm = TRUE)
+```
+
+This value tells us that there is an extreme peak in the distribution where most of the values are clustered. The peak is number 1.
+
+
+#### 2.12. Variable nperpcap
+```{r}
+summary(mydata$nperpcap)
+```
+
+In this case the value 0 makes sense.
+
+```{r}
+boxplot(mydata$nperpcap)
+```
+
+As we can see in this boxplot most of the time 0, 1 or 2 perpetrators are captured.
+
+```{r}
+skewness(mydata$nperpcap,na.rm = TRUE)
+```
+
+The positive value of skewness shows us that the variable value distribution is asimetric, its mode being a lower value than the median.
+
+```{r}
+kurtosis(mydata$nperpcap,na.rm = TRUE)
+```
+
+This value tells us that there is a peak in the distribution where most of the values are clustered. The peak values are numbers 0 and 1.
+
+
+#### 2.13. Variable claimed
+```{r}
+summary(mydata$claimed)
+```
+
+```{r}
+f<-table(mydata$claimed)
+f1=as.data.frame(f)
+slices <- f1[2]
+lbls1 <- f1[1]
+pct <- round(slices/sum(slices)*100)
+lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
+lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
+pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
+   main="Pie Chart of variable claimed")
+```
+
+As we can see in this pie chart 70% of the acts were not claimed while 30% of them were.
+
+#### 2.14. Variable claimmode_txt
+```{r}
+summary(mydata$claimmode_txt)
+```
+
+```{r}
+f<-table(mydata$claimmode_txt)
+f1=as.data.frame(f)
+slices <- f1[2]
+lbls1 <- f1[1]
+pct <- round(slices/sum(slices)*100)
+lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
+lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
+pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
+   main="Pie Chart of variable claimmode_txt")
+```
+
+As we see in the pie chart there are multiple methods of claiming an act with different occurance rates.
+
+
+#### 2.15. Variable weaptype1_txt
+```{r}
+summary(mydata$weaptype1_txt)
+```
+
+```{r}
+f<-table(mydata$weaptype1_txt)
+f1=as.data.frame(f)
+slices <- f1[2]
+lbls1 <- f1[1]
+pct <- round(slices/sum(slices)*100)
+lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
+lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
+pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
+   main="Pie Chart of variable weaptype1_txt")
+```
+
+As we see in those plots, there is a big favourite weapon type used during the recorded acts of terrorism which is "Explosives" with 50%, followed by "Incendiary" with 31%.
+
+
+#### 2.16. Variable nkill
+```{r}
+summary(mydata$nkill)
+```
+
+Even though there are some extreme values like 190, the mean stays really close to 0. This gives us an idea of the amount of 0s this variable contains.
+
+```{r}
+hist(mydata$nkill)
+```
+
+As we can see in this histogram most of the acts of terrorism do not have fatal victims.
+
+```{r}
+skewness(mydata$nkill,na.rm = TRUE)
+```
+
+This value tells us that this variable is widely asimetric, just as we have seen in the histogram
+
+```{r}
+kurtosis(mydata$nkill,na.rm = TRUE)
+```
+
+This value tells us that there is an extreme peak in the distribution where most of the values are clustered. This peak is 0 as we have seen before.
+
+
+
+#### 2.17. Variable nkillus
+```{r}
+summary(mydata$nkillus)
+```
+This variable is very similar to nkill.
+```{r}
+hist(mydata$nkillus)
+```
+
+As we can see in this histogram most of the acts of terrorism do not have fatal victims of United States citizens.
+
+```{r}
+skewness(mydata$nkillus,na.rm = TRUE)
+```
+This value tells us that this variable is widely asimetric, just as we have seen in the histogram.
+```{r}
+kurtosis(mydata$nperpcap,na.rm = TRUE)
+```
+This value tells us that there is an extreme peak in the distribution where most of the values are clustered. This peak is 0 as we have seen before.
+
+
+#### 2.18. Variable nkillter
+```{r}
+summary(mydata$nkillter)
+```
+This variable is very focused on 0 considering its max value is 5. 
+```{r}
+hist(mydata$nkillter)
+```
+
+As we can see in this histogram most of the acts of terrorism do not have fatal victims terrorists.
+
+```{r}
+skewness(mydata$nkillter,na.rm = TRUE)
+```
+This positive value shows us that it is an asimetric variable.
+```{r}
+kurtosis(mydata$nkillter,na.rm = TRUE)
+```
+This positive value shows us that most values are clustered around a peak which is number 0 as we noticed before.
+
+
+#### 2.19. Variable nwound
+```{r}
+summary(mydata$nwound)
+```
+The maximum value of 751 is way off the mean. The 1st and 3rd quartile are 0 which tells us that most values are 0.
+```{r}
+hist(mydata$nwound)
+```
+
+As we can see in this histogram most of the acts of terrorism do not have wounded victims.
+
+```{r}
+skewness(mydata$nwound,na.rm = TRUE)
+```
+This value tells us that this variable is very asimetric, just as we have seen in the histogram.
+```{r}
+kurtosis(mydata$nperpcap,na.rm = TRUE)
+```
+This value tells us that there is an extreme peak in the distribution where most of the values are clustered. This peak is 0 as we have seen before.
+
+
+#### 2.20. Variable nwoundus
+```{r}
+summary(mydata$nwoundus)
+```
+The maximum value of 751 is way off the mean. The 1st and 3rd quartile are 0 which tells us that most values are 0.
+```{r}
+hist(mydata$nwoundus)
+```
+
+As we can see in this histogram most of the acts of terrorism do not have wounded United States citizens.
+
+```{r}
+skewness(mydata$nwoundus,na.rm = TRUE)
+```
+This positive value shows us that the variable is asimetric.
+```{r}
+kurtosis(mydata$nperpcap,na.rm = TRUE)
+```
+This positive value shows us that the values are clustered around a peak which is 0 in this case.
+
+
+#### 2.21. Variable nwoundte
+```{r}
+summary(mydata$nwoundte)
+```
+This variable is very similar to nkillter. This is related to the fact that the number of perpetrators nperp is 1 most of the times.
+```{r}
+hist(mydata$nwoundte)
+```
+
+As we can see in this histogram most of the acts of terrorism do not have wounded terrorists.
+
+```{r}
+skewness(mydata$nwoundte,na.rm = TRUE)
+```
+This positive value shows us that this variable is asimetric.
+```{r}
+kurtosis(mydata$nwoundte,na.rm = TRUE)
+```
+This positive value shows us that there is an extreme peak where all values are clustered around.
+
+
+#### 2.22. Variable propvalue
+```{r}
+summary(as.numeric(mydata$propvalue))
+```
+
+```{r}
+mydata.propvaluelog <- sapply(as.vector(mydata$propvalue), function(x) log10(x))
+boxplot(mydata$propvalue, main = "Boxplot of variable propvalue")
+boxplot(mydata.propvaluelog, main = "Boxplot of variable propvalue", ylab = "log10(propvalue)")
+```
+
+These are the boxplots for both the variable propvalue and its logarithm, because log(propvalue) is the one that appears to follow a normal distribution. We can observe that the majority of the incidents had very low valued property damage.
+```{r}
+skewness(mydata$propvalue[!is.na(mydata$propvalue)])
+```
+This value tells us that this variable is very asimetric, just as we have seen before.
+```{r}
+kurtosis(mydata$propvalue[!is.na(mydata$propvalue)])
+```
+This value shows us there is a big peak distribution which we know happens in the values close to 0.
+
+
+#### 2.23. Variable INT_IDEO
+```{r}
+summary(mydata$INT_IDEO)
+```
+```{r}
+f<-table(mydata$INT_IDEO)
+# Pie
+f1=as.data.frame(f)
+
+slices <- f1[2]
+lbls1 <- f1[1]
+pct <- round(slices/sum(slices)*100)
+lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
+lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
+pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
+   main="Pie Chart of variable INT_IDEO")
+```
+
+This pie chart indicates the proportion of ideologically international registered incidents out of the total. Only one third of them, 33%, was considered international by this criteria.
+
+#### 2.24. Variable INT_MISC
+```{r}
+summary(mydata$INT_MISC)
+```
+```{r}
+f<-table(mydata$INT_MISC)
+# Pie
+f1=as.data.frame(f)
+
+slices <- f1[2]
+lbls1 <- f1[1]
+pct <- round(slices/sum(slices)*100)
+lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
+lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
+pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
+   main="Pie Chart of variable INT_MISC")
+```
+
+This pie chart indicates that only 12% of the registered incidents were international.
+
+#### 2.25. Variable president_party
+```{r}
+summary(mydata$president_party)
+```
+
+```{r}
+f<-table(mydata$president_party)
+# Pie
+f1=as.data.frame(f)
+
+slices <- f1[2]
+lbls1 <- f1[1]
+pct <- round(slices/sum(slices)*100)
+lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
+lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
+pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
+   main="Pie Chart of variable president_party")
+```
+
+This is the distribution of the number of acts of terrorism and which was the president party at the time of the incident. We can see that the majority of the incidents (69%) happened under a Republican president.
+
+#### 2.26. Variable state_governor_party
+```{r}
+summary(mydata$state_governor_party)
+```
+
+```{r}
+f<-table(mydata$state_governor_party)
+# Pie
+f1=as.data.frame(f)
+
+slices <- f1[2]
+lbls1 <- f1[1]
+pct <- round(slices/sum(slices)*100)
+lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
+lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
+pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
+   main="Pie Chart of variable state_governor_party")
+```
+
+This is the distribution of the number of acts of terrorism and which was the state governor party at the time of the incident. Under the Democrat and Republican parties, the two main ones in the country, there were a similar amount of incidents (40% and 38% respectively).
+
+#### 2.27. Variable date
+```{r}
+summary(mydata$date)
+```
+
+```{r}
+f<-table(mydata$date)
+View(f)
+barplot(f)
+```
+
+It can be seen that the amount of attacks has decreased with time.
+
+

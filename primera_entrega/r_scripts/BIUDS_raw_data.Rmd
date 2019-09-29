@@ -1,0 +1,276 @@
+---
+author: "Team 2 Group 11"
+title: "Basic initial univariate descriptive statistics of raw variables"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  
+header-includes:
+- \usepackage{lscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(comment = NA)
+```
+
+This is a study of the different variables focused on searching null, incorrect and outlier values. After the preprocessing we will make a larger analysis trying to find the characteristics for each variable.
+
+```{r warning=FALSE}
+if(!require("ggplot2"))install.packages("ggplot2", repos = "http://cran.us.r-project.org"); require("ggplot2")
+if(!require("e1071"))install.packages("e1071", repos = "http://cran.us.r-project.org"); require("e1071")
+if(!require("readr"))install.packages("readr"); require("readr")
+```
+
+### 1. Loading the dataset
+
+```{r warning=FALSE}
+Terrorism_US_FIXED <- read_csv("Terrorism_US_FIXED.csv")
+colnames(Terrorism_US_FIXED)
+```
+### 2. Study of each variable
+#### 2.1. Variable provstate
+```{r}
+summary(as.factor(Terrorism_US_FIXED$provstate))
+```
+```{r}
+barplot(table(Terrorism_US_FIXED$provstate),main="provstate",las=2)
+```
+
+Thanks to the previous images, we can see the number of terrorist attacks in each state ordered alphabetically. We can observe that California is on top of the list followed closely by New York and Puerto Rico.
+
+#### 2.2. Variable city
+```{r}
+summary(as.factor(Terrorism_US_FIXED$city))
+```
+
+Since city is a textual variable we will not do a plot (because there are lots of them).
+
+#### 2.3. Variable latitude
+```{r}
+summary(Terrorism_US_FIXED$latitude)
+skewness(Terrorism_US_FIXED$latitude,na.rm = TRUE)
+kurtosis(Terrorism_US_FIXED$latitude,na.rm = TRUE)
+```
+```{r}
+boxplot(Terrorism_US_FIXED$latitude)
+```
+
+Since at this point in time the preprocessing is still not done, the summary, the skewness and the kurtosis do not make much sense since there are incorrect values. 
+
+#### 2.4. Variable longitude
+```{r}
+summary(Terrorism_US_FIXED$longitude)
+skewness(Terrorism_US_FIXED$longitude,na.rm = TRUE)
+kurtosis(Terrorism_US_FIXED$longitude,na.rm = TRUE)
+```
+```{r}
+boxplot(Terrorism_US_FIXED$longitude)
+```
+
+In the same way as with the latitude, the information above should not be considered truly valid.
+
+#### 2.5. Variable doubtterr
+```{r}
+summary(as.logical(Terrorism_US_FIXED$doubtterr))
+barplot(table(Terrorism_US_FIXED$doubtterr))
+```
+
+Since the missings in this variable are '-9', R interpretes them as true because they are different than 0, so the summary does not count the number of trues correctly.
+
+#### 2.6. Variable success
+```{r}
+summary(as.logical(Terrorism_US_FIXED$success))
+barplot(table(Terrorism_US_FIXED$success))
+```
+
+Here we can see a variable that is correct despite not being preprocessed. We can see that the majority of the attacks are successful.
+
+#### 2.7. Variable attacktype1_txt
+```{r}
+summary(as.factor(Terrorism_US_FIXED$attacktype1_txt))
+op <- par(mar=c(15,4,4,2))
+barplot(table(Terrorism_US_FIXED$attacktype1_txt),main="attacktype1_txt",las=2)
+rm(op)
+```
+
+Thanks to the summary and the barplot, we can observe that there are missings specified with '0' and with 'Unknown'.
+
+#### 2.8. Variable targtype1_txt
+```{r}
+summary(as.factor(Terrorism_US_FIXED$targtype1_txt))
+op <- par(mar=c(12,4,4,2))
+barplot(table(Terrorism_US_FIXED$targtype1_txt),main="targtype1_txt",las=2)
+rm(op)
+```
+We can see that the most targeted type is business. We can also see that there are null values as Unknown.
+
+#### 2.9. Variable natlty1_txt
+```{r}
+summary(as.factor(Terrorism_US_FIXED$natlty1_txt))
+```
+
+Thanks to this summary we can see that there are values that do not make sense as a nationality like "Journalist: Kurt Eichenwald".
+
+#### 2.10. Variable gname
+```{r}
+summary(as.factor(Terrorism_US_FIXED$gname))
+```
+
+We can see that the majority of the attacks are perpetrated by Anti-Abortion extremists and Left-Wing Militants. During the preprocess we will analyze the Unknown values.
+
+#### 2.11. Variable nperps
+```{r}
+summary(Terrorism_US_FIXED$nperps)
+skewness(Terrorism_US_FIXED$nperps,na.rm = TRUE)
+kurtosis(Terrorism_US_FIXED$nperps,na.rm = TRUE)
+boxplot(Terrorism_US_FIXED$nperps)
+```
+
+Here the missings are marked with '-99' so not all data is valid, with the preprocessing we will fix this.
+
+#### 2.12. Variable npercap
+```{r}
+summary(Terrorism_US_FIXED$nperpcap)
+skewness(Terrorism_US_FIXED$nperpcap,na.rm = TRUE)
+kurtosis(Terrorism_US_FIXED$nperpcap,na.rm = TRUE)
+boxplot(Terrorism_US_FIXED$nperpcap)
+```
+
+Here's happening the same thing as before, so we cannot extract conclusions from this.
+
+#### 2.13. Variable claimed
+```{r}
+summary(as.logical(Terrorism_US_FIXED$claimed))
+barplot(table(Terrorism_US_FIXED$claimed))
+```
+
+Thanks to this we see that for some reason, despite being a logical variable, there are many different values. During the preprocessing we will study this.
+
+#### 2.14. Variable claimmode_txt
+```{r}
+summary(as.factor(Terrorism_US_FIXED$claimmode_txt))
+op <- par(mar=c(12,4,4,2))
+barplot(table(Terrorism_US_FIXED$claimmode_txt),main="claimmode_txt",las=2)
+rm(op)
+```
+
+Here we see that there are some '0', '1' and 'Unknown' that shold be NA.
+
+#### 2.15. Variable weaptype1_txt
+```{r}
+summary(as.factor(Terrorism_US_FIXED$weaptype1_txt))
+op <- par(mar=c(11,4,4,2))
+barplot(table(Terrorism_US_FIXED$weaptype1_txt),main="weaptype1_txt",las=2)
+rm(op)
+```
+
+Here we see that there are some Unknown that shold be treated as NA and that Vehicle (not to include vehicle-borne explosives, i.e., car or truck bombs) has a very long name so in the preprocessing we should just put vehicle so it can be shown in the plot.
+
+#### 2.16. Variable nkill
+```{r}
+summary(as.numeric(Terrorism_US_FIXED$nkill))
+skewness(as.numeric(Terrorism_US_FIXED$nkill,na.rm = TRUE))
+kurtosis(as.numeric(Terrorism_US_FIXED$nkill,na.rm = TRUE))
+boxplot(as.numeric(Terrorism_US_FIXED$nkill))
+```
+
+Here we see that nkill was imported as a character variable and so we have to do as.numeric() to even do the boxplot, but it does not work properly and the skewness and kurtosis were not properly calculated.
+
+#### 2.17. Variable nkillus
+```{r}
+summary(Terrorism_US_FIXED$nkillus)
+skewness(Terrorism_US_FIXED$nkillus,na.rm = TRUE)
+kurtosis(Terrorism_US_FIXED$nkillus,na.rm = TRUE)
+boxplot(Terrorism_US_FIXED$nkillus)
+```
+
+Thanks to this we can see some possible outliers that should be studied during the preprocessing.
+
+#### 2.19. Variable nkiller
+```{r}
+summary(Terrorism_US_FIXED$nkillter)
+skewness(Terrorism_US_FIXED$nkillter,na.rm = TRUE)
+kurtosis(Terrorism_US_FIXED$nkillter,na.rm = TRUE)
+boxplot(Terrorism_US_FIXED$nkillter)
+```
+
+Here, there is not a lot to comment. The only destacable thing would be that the majority of attackers are not killed during the attacks.
+
+#### 2.20. Variable nwound
+```{r}
+summary(Terrorism_US_FIXED$nwound)
+skewness(Terrorism_US_FIXED$nwound,na.rm = TRUE)
+kurtosis(Terrorism_US_FIXED$nwound,na.rm = TRUE)
+boxplot(Terrorism_US_FIXED$nwound)
+```
+
+We can see a possible outlier that should be studied. We can also verify that most attacks do not cause injured people.
+
+#### 2.21. Variable nwoundus
+```{r}
+summary(Terrorism_US_FIXED$nwoundus)
+skewness(Terrorism_US_FIXED$nwoundus,na.rm = TRUE)
+kurtosis(Terrorism_US_FIXED$nwoundus,na.rm = TRUE)
+boxplot(Terrorism_US_FIXED$nwoundus)
+```
+We can see a very similar chart to the previous one. We should study the relation between nwound and nwoundus in the future.
+
+#### 2.22. Variable nwoundte
+```{r}
+summary(Terrorism_US_FIXED$nwoundte)
+skewness(Terrorism_US_FIXED$nwoundte,na.rm = TRUE)
+kurtosis(Terrorism_US_FIXED$nwoundte,na.rm = TRUE)
+boxplot(Terrorism_US_FIXED$nwoundte)
+```
+
+We can see that the majority of attackers are not injured during the attacks.
+
+#### 2.23. Variable propvalue
+```{r}
+summary(as.numeric(Terrorism_US_FIXED$propvalue))
+skewness(as.numeric(Terrorism_US_FIXED$propvalue,na.rm = TRUE))
+kurtosis(as.numeric(Terrorism_US_FIXED$propvalue,na.rm = TRUE))
+boxplot(as.numeric(Terrorism_US_FIXED$propvalue))
+```
+
+As the data is not preprocessed yet, we can not extract conclusions but we can already see a possible outlier.
+
+#### 2.24. Variable int_ideo
+```{r}
+summary(as.logical(Terrorism_US_FIXED$INT_IDEO))
+op <- par(mar=c(8,4,4,2))
+barplot(table(Terrorism_US_FIXED$INT_IDEO),las = 2)
+rm(op)
+```
+
+Thanks to this we see that for some reason despite being a logical variable there are many different values that do not make any sense, during the preprocessing we will study this.
+
+#### 2.26. Variable int_misc
+```{r}
+summary(as.logical(Terrorism_US_FIXED$INT_MISC))
+barplot(table(Terrorism_US_FIXED$INT_MISC))
+```
+
+Because the missings in this variable are '-9', R interpretes them as true because they are different than 0, so the summary does not count the number of trues correctly.
+
+#### 2.27. Variable president_party
+```{r}
+summary(as.factor(Terrorism_US_FIXED$president_party))
+barplot(table(Terrorism_US_FIXED$president_party),main="president_party")
+```
+
+This is a variable that seems correct.
+
+#### 2.28. Variable state_governor_party
+```{r}
+summary(as.factor(Terrorism_US_FIXED$state_governor_party))
+op <- par(mar=c(16,4,4,2))
+
+barplot(table(Terrorism_US_FIXED$state_governor_party),main="state_governor_party",las=2)
+rm(op)
+```
+
+In this summary we see that there are some typos, Democratic should probably be Democrat and Domecratic-Farmer-Labor should be Democratic-Farmer-Labor.

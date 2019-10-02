@@ -18,7 +18,6 @@ for index, row in dataset.iterrows():
         dict_states[state] = 1
 
 array = []
-array.append(['AZ',40])
 for state, count in dict_states.items():
     array.append([state,count])
 data_states_num_attacks = pd.DataFrame(array, columns = ['state', 'count'])
@@ -30,7 +29,7 @@ folium.Choropleth(
     name='choropleth',
     data=data_states_num_attacks,
     columns=['state', 'count'],
-    key_on='feature.id',
+    key_on='feature.properties.name',
     fill_color='YlGn',
     fill_opacity=0.7,
     line_opacity=0.2,

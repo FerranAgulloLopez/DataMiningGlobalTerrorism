@@ -21,7 +21,7 @@ Loading dataset:
 
 ```{r}
 # PONER EL PATH RELATIVO !!!
-mydata = read.csv("../../first_delivery/datasets/preprocessed_dataset.csv")
+mydata = read.csv("../../primera_entrega/datasets/preprocessed_dataset.csv")
 
 ```
 

@@ -17,4 +17,66 @@ header-includes:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Loading dataset:
 
+```{r}
+# PONER EL PATH RELATIVO !!!
+mydata = read.csv("../../first_delivery/datasets/preprocessed_dataset.csv")
+
+```
+
+We want to analyze what relationship there is between the number of successfull terrorist attack (success == TRUE) and the type of attack it was.
+
+```{r}
+success_attacks <- mydata[mydata$success == 'TRUE',]
+
+f<-table(success_attacks$attacktype1_txt)
+f1=as.data.frame(f)
+
+# Pie Chart Basic
+slices <- f1[2]
+lbls1 <- f1[1]
+pct <- round(slices/sum(slices)*100)
+lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
+lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
+pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
+   main="Pie Chart of % success attakcs for each attacktype1_txt")
+
+# Pie Chart con Plotly
+if(!require(plotly))install.packages("plotly"); require(plotly)
+library(plotly)
+packageVersion('plotly')
+plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie') %>%
+  layout(title = 'Pie Chart of % success attakcs for each attacktype1_txt',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+```
+
+We want to analyze what relationship there is between the number of successfull terrorist attack (success == TRUE) and the type of weapon used in it.
+
+```{r}
+success_attacks <- mydata[mydata$success == 'TRUE',]
+
+f<-table(success_attacks$weaptype1_txt)
+f1=as.data.frame(f)
+
+# Pie Chart Basic
+slices <- f1[2]
+lbls1 <- f1[1]
+pct <- round(slices/sum(slices)*100)
+lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
+lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
+pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
+   main="Pie Chart of % success attakcs for each attacktype1_txt")
+
+# Pie Chart con Plotly
+if(!require(plotly))install.packages("plotly"); require(plotly)
+library(plotly)
+# HACER QUE NO SE VEA RECORTADO!!! 
+plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie') %>%
+  layout(title = 'Pie Chart of % success attakcs for each weaptype1_txt',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+```

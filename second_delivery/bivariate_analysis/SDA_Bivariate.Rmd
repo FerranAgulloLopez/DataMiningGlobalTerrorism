@@ -80,3 +80,56 @@ plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie') %>%
          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 
 ```
+
+
+#### weaptype1_txt / success
+
+```{r}
+summary(mydata$weaptype1_txt)
+summary(mydata$success)
+
+aux = table(mydata$weaptype1_txt,mydata$success);
+
+SuccessRate=numeric(11);
+for (x in 1:11) {
+  aux2=aux[x,2]/(aux[x,1]+aux[x,2]);
+  SuccessRate[x]=aux2;
+}
+t <- cbind(aux,SuccessRate);
+print(t)
+
+chisq.test(aux)
+```
+
+
+
+#### targtype1_txt / provstate
+
+```{r}
+summary(mydata$targtype1_txt);
+summary(mydata$provstate);
+
+aux = table(mydata$provstate,mydata$targtype1_txt);
+print(aux)
+
+chisq.test(aux)
+```
+
+With a p-value of 2.2e-16 we can reject this test's null hypothesis and conclude this variables are in fact dependent. 
+
+
+
+#### targtype1_txt / success
+
+```{r}
+summary(mydata$targtype1_txt)
+summary(mydata$success)
+
+aux = table(mydata$targtype1_txt ,mydata$success)
+print(aux)
+chisq.test(aux)
+```
+
+With a p-value of 2.704e-05 we can reject this test's null hypothesis and conclude this variables are in fact dependent. 
+
+

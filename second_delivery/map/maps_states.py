@@ -4,7 +4,7 @@ import os
  
 state_geo = os.path.join('.', 'us-states.json') # https://github.com/python-visualization/folium/blob/master/tests/us-states.json
 
-dataset = pd.read_csv('../../first_delivery/datasets/preprocessed_dataset.csv')
+dataset = pd.read_csv('../../primera_entrega/datasets/preprocessed_dataset.csv')
 
 m = folium.Map(location=[25, 24], zoom_start=3, )
 
@@ -22,7 +22,7 @@ for state, count in dict_states.items():
     array.append([state,count])
 data_states_num_attacks = pd.DataFrame(array, columns = ['state', 'count'])
 
-print(data_states_num_attacks)
+bins = [0.0,58,116,174,232,290,348,406,464,579.0]
 
 folium.Choropleth(
     geo_data=state_geo,
@@ -33,7 +33,8 @@ folium.Choropleth(
     fill_color='YlGn',
     fill_opacity=0.7,
     line_opacity=0.2,
-    legend_name='Number of attacks'
+    legend_name='Number of attacks',
+    bins=bins
 ).add_to(m)
 
 folium.LayerControl().add_to(m)

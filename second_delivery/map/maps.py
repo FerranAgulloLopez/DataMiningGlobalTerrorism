@@ -3,7 +3,7 @@ import folium
 from folium.plugins import HeatMap
 from folium import FeatureGroup, LayerControl, Map, Marker
 
-data = pd.read_csv('../../first_delivery/datasets/preprocessed_dataset.csv')
+data = pd.read_csv('../../primera_entrega/datasets/preprocessed_dataset.csv')
 
 data_republican = data[data['president_party'] == 'Republican']
 data_democratic = data[data['president_party'] == 'Democratic']

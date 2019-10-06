@@ -333,7 +333,6 @@ aux = as.data.frame(aux)
 aux = aux[aux$Freq > 9,]
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
 
-
 ```
 
 #### gname / provstate
@@ -359,3 +358,53 @@ aux = table(mydata$gname ,mydata$provstate)
 print(aux)
 chisq.test(aux)
 ```
+
+
+#### provstate / state_governor_party
+
+```{r}
+aux = mydata$state_governor_party[mydata$provstate == 'California']
+aux = table(aux)
+aux = as.data.frame(aux)
+aux = aux[aux$Freq > 9,]
+aux = aux[aux$Freq < 200,]
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+
+
+aux = mydata$state_governor_party[mydata$provstate == 'New York']
+aux = table(aux)
+aux = as.data.frame(aux)
+View(aux)
+aux = aux[aux$Freq > 9,]
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+
+
+aux = mydata$state_governor_party[mydata$provstate == 'Puerto Rico']
+aux = table(aux)
+aux = as.data.frame(aux)
+aux = aux[aux$Freq > 9,]
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+
+```
+
+#### success (Rate) / president_party
+
+```{r}
+aux = mydata$president_party[mydata$success == TRUE]
+aux2 = mydata$president_party[mydata$success == FALSE]
+aux = table(aux)
+aux = as.data.frame(aux)
+aux2 = table(aux)
+aux2 = as.data.frame(aux)
+s = sum(aux[2])
+u = sum(aux2[2])
+a = aux[2]/(s+u)
+View(a)
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+
+
+aux = table(aux)
+aux = as.data.frame(aux)
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+```
+

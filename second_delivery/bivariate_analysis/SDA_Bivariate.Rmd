@@ -205,3 +205,68 @@ print(mat)
 boxplot(mat, main = "Boxplot of nperpcap in funtion of claimed",
         use.cols = TRUE)
 ```
+
+### weaptype1_txt / nkill
+```{r}
+summary(mydata$weaptype1_txt)
+summary(as.factor(mydata$nkill))
+aux = table(mydata$weaptype1_txt, mydata$nkill)
+print(aux)
+remove <- c(0,44,50,190)
+Biologicalkill = mydata$nkill[mydata$weaptype1_txt == 'Biological']
+Biologicalkill=Biologicalkill[! Biologicalkill %in% remove]
+
+Chemicalkill = mydata$nkill[mydata$weaptype1_txt == 'Chemical']
+Chemicalkill=Chemicalkill[! Chemicalkill %in% remove]
+
+Explosiveskill = mydata$nkill[mydata$weaptype1_txt == 'Explosives']
+Explosiveskill=Explosiveskill[! Explosiveskill %in% remove]
+
+FakeWeaponskill = mydata$nkill[mydata$weaptype1_txt == 'Fake Weapons']
+FakeWeaponskill=FakeWeaponskill[! FakeWeaponskill %in% remove]
+
+Firearmskill = mydata$nkill[mydata$weaptype1_txt == 'Firearms']
+Firearmskill[! Firearmskill %in% remove]
+
+Incendiarykill = mydata$nkill[mydata$weaptype1_txt == 'Incendiary']
+Incendiarykill=Incendiarykill[! Incendiarykill %in% remove]
+
+Meleekill = mydata$nkill[mydata$weaptype1_txt == 'Melee']
+Meleekill=Meleekill[! Meleekill %in% remove]
+
+Otherkill = mydata$nkill[mydata$weaptype1_txt == 'Other']
+Otherkill=Otherkill[! Otherkill %in% remove]
+
+Radiologicalkill = mydata$nkill[mydata$weaptype1_txt == 'Radiological']
+Radiologicalkill=Radiologicalkill[! Radiologicalkill %in% remove]
+
+SabotageEquipmentkill = mydata$nkill[mydata$weaptype1_txt == 'Sabotage Equipment']
+SabotageEquipmentkill=SabotageEquipmentkill[! SabotageEquipmentkill %in% remove]
+
+Vehiclekill = mydata$nkill[mydata$weaptype1_txt == 'Vehicle']
+Vehiclekill=Vehiclekill[! Vehiclekill %in% remove]
+
+
+boxplot(Biologicalkill,Explosiveskill,Firearmskill,Incendiarykill,Meleekill, main = "Boxplot of kills by weapon type",names=c("Biological","Explosives","Firearms","Incendiary","Melee"),
+        use.cols = TRUE)
+```
+
+
+### weaptype1_txt / nwound
+```{r}
+summary(mydata$weaptype1_txt)
+summary(as.factor(mydata$nwound))
+aux = table(mydata$weaptype1_txt, mydata$nwound)
+print(aux)
+
+Explosiveswound = mydata$nwound[mydata$weaptype1_txt == 'Explosives']
+
+Firearmswound = mydata$nwound[mydata$weaptype1_txt == 'Firearms']
+
+Incendiarywound = mydata$nwound[mydata$weaptype1_txt == 'Incendiary']
+
+Meleewound = mydata$nwound[mydata$weaptype1_txt == 'Melee']
+
+boxplot(Explosiveswound,Firearmswound,Incendiarywound,Meleewound, main = "Boxplot of wounded people by weapon type",names=c("Explosives","Firearms","Incendiary","Melee"),
+        use.cols = TRUE, col=c("red","yellow","blue","green"),horizontal = TRUE)
+```

@@ -17,6 +17,12 @@ header-includes:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Installing of necessary packages:
+
+```{r, warning=FALSE}
+if(!require(plotly))install.packages("plotly"); require(plotly)
+```
+
 Loading dataset:
 
 ```{r}
@@ -28,6 +34,7 @@ mydata = read.csv("../../primera_entrega/datasets/preprocessed_dataset.csv")
 #### attacktype1_txt / success
 
 First we want to analyze if there is a dependence between the variables attacktype1_txt and success.
+For that we make a table with values of these two variables.
 
 ```{r}
 summary(mydata$attacktype1_txt)
@@ -42,7 +49,11 @@ for (x in 1:8) {
 }
 t <- cbind(aux,SuccessRate);
 print(t)
+```
 
+And then we do the chi-square test, to check if there is a dependency between this two variables or not.
+
+```{r}
 chisq.test(aux)
 ```
 
@@ -66,7 +77,6 @@ pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
    main="Pie Chart of % success attakcs for each attacktype1_txt")
 
 # Pie Chart con Plotly
-if(!require(plotly))install.packages("plotly"); require(plotly)
 library(plotly)
 plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie') %>%
   layout(title = 'Pie Chart of % success attakcs for each attacktype1_txt',
@@ -78,6 +88,7 @@ plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie') %>%
 #### weaptype1_txt / success
 
 First we want to analyze if there is a dependence between the variables weaptype1_txt and success.
+For that we make a table with values of these two variables.
 
 ```{r}
 summary(mydata$weaptype1_txt)
@@ -92,7 +103,11 @@ for (x in 1:11) {
 }
 t <- cbind(aux,SuccessRate);
 print(t)
+```
 
+And then we do the chi-square test, to check if there is a dependency between this two variables or not.
+
+```{r}
 chisq.test(aux)
 ```
 
@@ -117,7 +132,6 @@ pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
    main="Pie Chart of % success attakcs for each attacktype1_txt")
 
 # Pie Chart con Plotly
-if(!require(plotly))install.packages("plotly"); require(plotly)
 library(plotly)
 # HACER QUE NO SE VEA RECORTADO!!! 
 plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie') %>%
@@ -156,4 +170,38 @@ chisq.test(aux)
 
 With a p-value of 2.704e-05 we can reject this test's null hypothesis and conclude this variables are in fact dependent. 
 
+#### nperpcap / claimmode_txt
 
+```{r}
+
+aux = table(mydata$claimmode_txt, mydata$nperpcap)
+aux = as.data.frame(aux)
+mat = matrix(aux[,"Freq"],9,11,FALSE,list(unique(aux[,"Var1"]),unique(aux[,"Var2"])))
+
+print(mat)
+```
+
+```{r}
+rownames(mat) <- c("C-Post","C-Pre","E-mail","Letter","Note", "Other","Pers.","Posted","Video")
+
+boxplot(mat, main = "Boxplot of nperpcap in funtion of claimmode_txt",
+        use.cols = FALSE)
+# PONERLA BIEN LA LEYENDA!!!
+# legend("topleft", c("C-Post: Call (post-incident)", "C-Pre: Call (pre-incident)","E-mail: E-mail","Letter: Letter","Note: Note left at scene","Other: Other", "Pers.: Personal claim", "Posted: Posted to website, blog, etc.", "Video: Video"))
+```
+#### nperpcap / claimed ???
+
+```{r}
+summary(mydata$nperpcap)
+summary(mydata$claimed)
+
+aux = table(mydata$nperpcap, mydata$claimed)
+aux = as.data.frame(aux)
+mat = matrix(aux[,"Freq"],11,2,FALSE,list(unique(aux[,"Var1"]),unique(aux[,"Var2"])))
+
+print(mat)
+```
+```{r}
+boxplot(mat, main = "Boxplot of nperpcap in funtion of claimed",
+        use.cols = TRUE)
+```

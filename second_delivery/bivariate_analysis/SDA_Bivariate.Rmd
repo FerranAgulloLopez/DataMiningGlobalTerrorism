@@ -206,7 +206,7 @@ boxplot(mat, main = "Boxplot of nperpcap in funtion of claimed",
         use.cols = TRUE)
 ```
 
-### weaptype1_txt / nkill
+#### weaptype1_txt / nkill
 ```{r}
 summary(mydata$weaptype1_txt)
 summary(as.factor(mydata$nkill))
@@ -252,7 +252,7 @@ boxplot(Biologicalkill,Explosiveskill,Firearmskill,Incendiarykill,Meleekill, mai
 ```
 
 
-### weaptype1_txt / nwound
+#### weaptype1_txt / nwound
 ```{r}
 summary(mydata$weaptype1_txt)
 summary(as.factor(mydata$nwound))
@@ -260,7 +260,8 @@ aux = table(mydata$weaptype1_txt, mydata$nwound)
 print(aux)
 
 Explosiveswound = mydata$nwound[mydata$weaptype1_txt == 'Explosives']
-
+Explosiveswound <- sapply(as.vector(Explosiveswound), function(x) log10(x))
+print(Explosiveswound)
 Firearmswound = mydata$nwound[mydata$weaptype1_txt == 'Firearms']
 
 Incendiarywound = mydata$nwound[mydata$weaptype1_txt == 'Incendiary']
@@ -269,4 +270,92 @@ Meleewound = mydata$nwound[mydata$weaptype1_txt == 'Melee']
 
 boxplot(Explosiveswound,Firearmswound,Incendiarywound,Meleewound, main = "Boxplot of wounded people by weapon type",names=c("Explosives","Firearms","Incendiary","Melee"),
         use.cols = TRUE, col=c("red","yellow","blue","green"),horizontal = TRUE)
+```
+
+#### year date / n º acts 
+
+```{r}
+class(mydata$date)
+mydata$date = as.Date(mydata$date, "%Y-%m-%d")
+class(mydata$date)
+mydata$year = as.numeric(format(mydata$date, "%Y"))
+
+aux = table(mydata$year)
+#dev.off()
+x11()
+Conf2x2 = matrix(c(1:6), nrow=3, byrow=FALSE)
+layout(Conf2x2)
+layout.show(6)
+barplot(aux[0:47])
+barplot(aux[0:10])
+barplot(aux[11:20])
+barplot(aux[21:29])
+barplot(aux[30:39])
+barplot(aux[39:47])
+x11()
+```
+
+#### month / n º acts 
+
+```{r}
+
+class(mydata$date)
+mydata$date = as.Date(mydata$date, "%Y-%m-%d")
+class(mydata$date)
+mydata$month = as.numeric(format(mydata$date, "%m"))
+
+aux = table(mydata$month);
+
+barplot(aux)
+
+```
+
+#### provstate / gname
+
+```{r}
+aux = mydata$gname[mydata$provstate == 'California']
+aux = table(aux)
+aux = as.data.frame(aux)
+aux = aux[aux$Freq > 9,]
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+
+
+aux = mydata$gname[mydata$provstate == 'New York']
+aux = table(aux)
+aux = as.data.frame(aux)
+aux = aux[aux$Freq > 9,]
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+
+
+aux = mydata$gname[mydata$provstate == 'Puerto Rico']
+aux = table(aux)
+aux = as.data.frame(aux)
+aux = aux[aux$Freq > 9,]
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+
+
+```
+
+#### gname / provstate
+
+```{r}
+aux = mydata$provstate[mydata$gname == 'Anti-Abortion extremists']
+aux=table(aux)
+aux=as.data.frame(aux)
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+
+aux = mydata$provstate[mydata$gname == 'Left-Wing Militants']
+aux=table(aux)
+aux=as.data.frame(aux)
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+
+aux = mydata$provstate[mydata$gname == 'Fuerzas Armadas de Liberacion Nacional (FALN)']
+aux=table(aux)
+aux=as.data.frame(aux)
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+
+
+aux = table(mydata$gname ,mydata$provstate)
+print(aux)
+chisq.test(aux)
 ```

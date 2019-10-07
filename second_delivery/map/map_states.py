@@ -1,12 +1,26 @@
 import pandas as pd
 import folium
+from folium import plugins
 import os
  
 state_geo = os.path.join('.', 'us-states.json') # https://github.com/python-visualization/folium/blob/master/tests/us-states.json
 
-dataset = pd.read_csv('../../primera_entrega/datasets/preprocessed_dataset.csv')
+dataset = pd.read_csv('../datasets/longitudeFixed.csv')
 
-m = folium.Map(location=[25, 24], zoom_start=3, )
+m = folium.Map(location=[25, 24], zoom_start=3,)
+folium.TileLayer('openstreetmap').add_to(m)
+folium.TileLayer('Stamen Terrain').add_to(m)
+
+plugins.Fullscreen(
+    position='topright',
+    title='Expand me',
+    title_cancel='Exit me',
+    force_separate_button=True
+).add_to(m)
+
+minimap = plugins.MiniMap()
+m.add_child(minimap)
+
 
 dict_states = {}
 for index, row in dataset.iterrows():
@@ -26,7 +40,7 @@ bins = [0.0,58,116,174,232,290,348,406,464,579.0]
 
 folium.Choropleth(
     geo_data=state_geo,
-    name='choropleth',
+    name='States',
     data=data_states_num_attacks,
     columns=['state', 'count'],
     key_on='feature.properties.name',
@@ -40,4 +54,4 @@ folium.Choropleth(
 folium.LayerControl().add_to(m)
  
 # Save to html
-m.save('heatmap_states.html')
+m.save('html_files/map_states.html')

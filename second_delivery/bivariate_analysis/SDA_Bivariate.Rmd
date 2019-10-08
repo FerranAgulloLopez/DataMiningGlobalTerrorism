@@ -272,14 +272,14 @@ boxplot(Explosiveswound,Firearmswound,Incendiarywound,Meleewound, main = "Boxplo
         use.cols = TRUE, col=c("red","yellow","blue","green"),horizontal = TRUE)
 ```
 
-#### year date / n º acts 
 
+#### n º acts / year date  
+
+In this analysis we want to look into the distribution of acts over the years. We will see 10 year intervals and 1970-2017 graphs in order to compare them properly.
 ```{r}
 class(mydata$date)
 mydata$date = as.Date(mydata$date, "%Y-%m-%d")
-class(mydata$date)
 mydata$year = as.numeric(format(mydata$date, "%Y"))
-
 aux = table(mydata$year)
 #dev.off()
 x11()
@@ -294,98 +294,112 @@ barplot(aux[30:39])
 barplot(aux[39:47])
 x11()
 ```
+We can see that the year with most acts of terrorism is by far 1970. In the last graph 2009-2017 we can clearly see that there is an increasing tendency.
 
-#### month / n º acts 
+#### n º acts / month
 
+In this analysis we want to see what is the distribution of acts of terrorism over the months in order to see if there is any anomaly.
 ```{r}
-
 class(mydata$date)
 mydata$date = as.Date(mydata$date, "%Y-%m-%d")
-class(mydata$date)
 mydata$month = as.numeric(format(mydata$date, "%m"))
-
 aux = table(mydata$month);
-
 barplot(aux)
-
 ```
+The acts are fairly distributed, with the preferred month being May and the least favorite being November.
 
-#### provstate / gname
+#### provstate (top 3 provstate) / gname
 
+In this analysis we want to see the distributions of acts of terrorism by each group in the 3 most striked states.
 ```{r}
 aux = mydata$gname[mydata$provstate == 'California']
-aux = table(aux)
-aux = as.data.frame(aux)
+aux=as.data.frame(table(aux))
 aux = aux[aux$Freq > 9,]
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+```
 
-
+```{r}
 aux = mydata$gname[mydata$provstate == 'New York']
-aux = table(aux)
-aux = as.data.frame(aux)
+aux=as.data.frame(table(aux))
 aux = aux[aux$Freq > 9,]
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+```
 
-
+```{r}
 aux = mydata$gname[mydata$provstate == 'Puerto Rico']
-aux = table(aux)
-aux = as.data.frame(aux)
+aux=as.data.frame(table(aux))
 aux = aux[aux$Freq > 9,]
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
 
 ```
 
-#### gname / provstate
+#### provstate / gname (top 3 gname)
 
+In this analysis we want to identify in which states a given gname has committed acts of terrorism. This will provide us insight of the group's target population.
 ```{r}
 aux = mydata$provstate[mydata$gname == 'Anti-Abortion extremists']
-aux=table(aux)
-aux=as.data.frame(aux)
+aux=as.data.frame(table(aux))
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+```
+We can see that this group widely distributed theirs acts of terrorism over the states.
 
+```{r}
 aux = mydata$provstate[mydata$gname == 'Left-Wing Militants']
-aux=table(aux)
-aux=as.data.frame(aux)
+aux=as.data.frame(table(aux))
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+```
+We can see that this group's acts were fairly distributed although half of them were targeted to the two main victim states.
 
+```{r}
 aux = mydata$provstate[mydata$gname == 'Fuerzas Armadas de Liberacion Nacional (FALN)']
-aux=table(aux)
-aux=as.data.frame(aux)
+aux=as.data.frame(table(aux))
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+```
+In this case we can clearly see that the acts were targeted towards the states of New York, Illinois and Puerto Rico.
 
 
+```{r}
 aux = table(mydata$gname ,mydata$provstate)
-print(aux)
 chisq.test(aux)
 ```
 
 
-#### Rate of events by state_governor_party in top 3 provstates
+#### Event Rate / state_governor_party (top 3 provstates)
 
+We want to know what is the percentatge of acts committed while the rule of each state_governor_party. Only the 3 states with most recorded acts will be considered because in some of the states the sample size would be too small.
+
+First we will check California as it is the first state with most recorded acts of terrorism (532). 
 ```{r}
 aux = mydata$state_governor_party[mydata$provstate == 'California']
 aux = as.data.frame(table(aux))
 aux = aux[aux$Freq > 9,]
 aux = aux[aux$Freq < 200,]
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+```
+Not considering the outliers, we can see that 69.9% of the acts where committed in this state while the Democrat party was ruling.
 
-
+We will do the same analysis with New York as it is the second state with most recorded acts of terrorism (473).
+```{r}
 aux = mydata$state_governor_party[mydata$provstate == 'New York']
 aux = as.data.frame(table(aux))
 aux = aux[aux$Freq > 9,]
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+```
+In this case the ratio is more equaly distributed, with 51.6% for the Democrats
 
-
+Lastly we will do the same analysis with Puerto Rico as it is the third state with most recorded acts of terrorism (226).
+```{r}
 aux = mydata$state_governor_party[mydata$provstate == 'Puerto Rico']
 aux = as.data.frame(table(aux))
 aux = aux[aux$Freq > 9,]
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
-
 ```
+In the pie we can see that 65.3% of the acts were commited while the New Progressive Party was ruling.
 
 
-#### success (Rate) / president_party
+#### Success Rate / president_party
 
+In this analysis we want to check what is the ratio of success of terrorism acts while each president_party was ruling.
 ```{r}
 success = mydata$president_party[mydata$success == TRUE]
 fail = mydata$president_party[mydata$success == FALSE]
@@ -398,6 +412,5 @@ tf = 100*fail[2]/s
 b=data.frame(Rate=c("Success","Fail"),Freq = c(ts[1,1],tf[1,1])) 
 View(b)
 plot_ly(b, labels = ~b, values = ~Freq, type = 'pie')
-
 ```
 

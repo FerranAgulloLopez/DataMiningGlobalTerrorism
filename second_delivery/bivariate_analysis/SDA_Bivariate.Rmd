@@ -53,7 +53,7 @@ print(t)
 
 And then we do the chi-square test, to check if there is a dependency between this two variables or not.
 
-```{r}
+```{r, warning=FALSE}
 chisq.test(aux)
 ```
 
@@ -66,15 +66,6 @@ success_attacks <- mydata[mydata$success == 'TRUE',]
 
 f<-table(success_attacks$attacktype1_txt)
 f1=as.data.frame(f)
-
-# Pie Chart Basic
-slices <- f1[2]
-lbls1 <- f1[1]
-pct <- round(slices/sum(slices)*100)
-lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
-lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
-pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
-   main="Pie Chart of % success attakcs for each attacktype1_txt")
 
 # Pie Chart con Plotly
 library(plotly)
@@ -107,7 +98,7 @@ print(t)
 
 And then we do the chi-square test, to check if there is a dependency between this two variables or not.
 
-```{r}
+```{r, warning=FALSE}
 chisq.test(aux)
 ```
 
@@ -122,28 +113,19 @@ success_attacks <- mydata[mydata$success == 'TRUE',]
 f<-table(success_attacks$weaptype1_txt)
 f1=as.data.frame(f)
 
-# Pie Chart Basic
-slices <- f1[2]
-lbls1 <- f1[1]
-pct <- round(slices/sum(slices)*100)
-lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
-lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
-pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
-   main="Pie Chart of % success attakcs for each attacktype1_txt")
-
 # Pie Chart con Plotly
 library(plotly)
 # HACER QUE NO SE VEA RECORTADO!!! 
-plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie') %>%
-  layout(title = 'Pie Chart of % success attakcs for each weaptype1_txt',
-         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie', height = 680) %>%
+  layout(title = 'Pie Chart of % success attakcs for each weaptype1_txt')
 
 ```
 
 #### targtype1_txt / provstate
 
-```{r}
+In this section we want see if there is a relation between different type of targets and the state where was an attack.
+
+```{r, warning=FALSE}
 summary(mydata$targtype1_txt);
 summary(mydata$provstate);
 
@@ -155,22 +137,62 @@ chisq.test(aux)
 
 With a p-value of 2.2e-16 we can reject this test's null hypothesis and conclude this variables are in fact dependent. 
 
+So with the next table we can see that some big states as California, New York, Florida or Illinois and Puerto Rico have more variability in the type of targets.
+
+```{r}
+aux2 = table(mydata$targtype1_txt,mydata$provstate);
+print(aux2)
+```
+
+And with this pie chart we can see that the most popular/common target type are:
+
+Business - individuals or organizations engaged in commercial or mercantile activity as a means of livelihood.
+
+Private Citizens & Property - includes attacks on individuals, the public in general or attacks in public areas including markets, commercial streets, busy intersections and pedestrian malls.
+
+Government (General) - any attack on a government building; government member, former members, including members of political parties in official capacities, their convoys, or events sponsored by political parties; political movements; or a government sponsored institution where the attack is expressly carried out to harm the government.
+
+```{r}
+f2=as.data.frame(aux2)
+plot_ly(f2, labels = ~Var1, values = ~Freq, type = 'pie') %>%
+  layout(title = 'Pie Chart of different targtype1_txt',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+```
 
 
 #### targtype1_txt / success
+
+Here we want to study if there is a relation between targtype1_txt and success.
+For this we make chisq.test() with the next results:
 
 ```{r}
 summary(mydata$targtype1_txt)
 summary(mydata$success)
 
 aux = table(mydata$targtype1_txt ,mydata$success)
-print(aux)
+print (aux)
 chisq.test(aux)
 ```
 
 With a p-value of 2.704e-05 we can reject this test's null hypothesis and conclude this variables are in fact dependent. 
 
+And with this table we can see the success rate of each target types implicated in attacks.
+
+```{r}
+SuccessRate=numeric(21);
+for (x in 1:21) {
+  aux2=aux[x,2]/(aux[x,1]+aux[x,2]);
+  SuccessRate[x]=aux2;
+}
+t <- cbind(aux,SuccessRate);
+print(t)
+```
+
 #### nperpcap / claimmode_txt
+
+We think it might be interesting to know whether the claimed mode affects or helps capture a perpetrator.
+To analyse it we use the next table, which contains claimed mode references and number of perpetrators captured, and the correspondent boxplot chart.
 
 ```{r}
 
@@ -180,38 +202,62 @@ mat = matrix(aux[,"Freq"],9,11,FALSE,list(unique(aux[,"Var1"]),unique(aux[,"Var2
 
 print(mat)
 ```
-
 ```{r}
+# Don't need column with number of 0 nperpcap
+mat <- mat[,-1]
+
 rownames(mat) <- c("C-Post","C-Pre","E-mail","Letter","Note", "Other","Pers.","Posted","Video")
 
 boxplot(mat, main = "Boxplot of nperpcap in funtion of claimmode_txt",
         use.cols = FALSE)
-# PONERLA BIEN LA LEYENDA!!!
-# legend("topleft", c("C-Post: Call (post-incident)", "C-Pre: Call (pre-incident)","E-mail: E-mail","Letter: Letter","Note: Note left at scene","Other: Other", "Pers.: Personal claim", "Posted: Posted to website, blog, etc.", "Video: Video"))
 ```
-#### nperpcap / claimed ???
+Legend:
+"C-Post: Call (post-incident)", 
+"C-Pre: Call (pre-incident)",
+"E-mail: E-mail",
+"Letter: Letter",
+"Note: Note left at scene",
+"Other: Other", 
+"Pers.: Personal claim", 
+"Posted: Posted to website, blog, etc.", 
+"Video: Video"
+
+With this boxplot we can obiously see that "Personal claim" have the biggest number of perpetrators captured. We don't consider it's outlier, but we want to see how will change the boxplot if we delete this particular case. 
+Soo in the next boxplot we decide to ignore this concrete claimed mode.
 
 ```{r}
-summary(mydata$nperpcap)
-summary(mydata$claimed)
+mat <- mat[-7,]
 
-aux = table(mydata$nperpcap, mydata$claimed)
-aux = as.data.frame(aux)
-mat = matrix(aux[,"Freq"],11,2,FALSE,list(unique(aux[,"Var1"]),unique(aux[,"Var2"])))
+boxplot(mat, main = "Boxplot of nperpcap in funtion of claimmode_txt without 'Pers.' mode",
+        use.cols = FALSE)
+```
+Legend:
+"C-Post: Call (post-incident)", 
+"C-Pre: Call (pre-incident)",
+"E-mail: E-mail",
+"Letter: Letter",
+"Note: Note left at scene",
+"Other: Other", 
+"Posted: Posted to website, blog, etc.", 
+"Video: Video"
 
-print(mat)
-```
-```{r}
-boxplot(mat, main = "Boxplot of nperpcap in funtion of claimed",
-        use.cols = TRUE)
-```
+And we can see better that "Letter" and "Note left at scene" are the next two claimed modes with the biggest number of captured perpetrators.
 
 #### weaptype1_txt / nkill
+
+In this part we study if there is a dependence between weapon type and number of kills.
+First of all we make a table with corresponding variables and see how our data looks like.
+
 ```{r}
 summary(mydata$weaptype1_txt)
 summary(as.factor(mydata$nkill))
 aux = table(mydata$weaptype1_txt, mydata$nkill)
 print(aux)
+```
+
+With this table we understand that there are some columns that have no sense for the study we want to do, soo we decide remove them and prepare our data for boxplot.
+
+```{r}
 remove <- c(0,44,50,190)
 Biologicalkill = mydata$nkill[mydata$weaptype1_txt == 'Biological']
 Biologicalkill=Biologicalkill[! Biologicalkill %in% remove]
@@ -253,6 +299,9 @@ boxplot(Biologicalkill,Explosiveskill,Firearmskill,Incendiarykill,Meleekill, mai
 
 
 #### weaptype1_txt / nwound
+
+The same type of study as in "weaptype1_txt / nkill" section we repeate with "weaptype1_txt / nwound".
+
 ```{r}
 summary(mydata$weaptype1_txt)
 summary(as.factor(mydata$nwound))
@@ -261,7 +310,7 @@ print(aux)
 
 Explosiveswound = mydata$nwound[mydata$weaptype1_txt == 'Explosives']
 Explosiveswound <- sapply(as.vector(Explosiveswound), function(x) log10(x))
-print(Explosiveswound)
+#print(Explosiveswound)
 Firearmswound = mydata$nwound[mydata$weaptype1_txt == 'Firearms']
 
 Incendiarywound = mydata$nwound[mydata$weaptype1_txt == 'Incendiary']
@@ -277,7 +326,6 @@ boxplot(Explosiveswound,Firearmswound,Incendiarywound,Meleewound, main = "Boxplo
 
 In this analysis we want to look into the distribution of acts over the years. We will see 10 year intervals and 1970-2017 graphs in order to compare them properly.
 ```{r}
-class(mydata$date)
 mydata$date = as.Date(mydata$date, "%Y-%m-%d")
 mydata$year = as.numeric(format(mydata$date, "%Y"))
 aux = table(mydata$year)
@@ -286,12 +334,12 @@ x11()
 Conf2x2 = matrix(c(1:6), nrow=3, byrow=FALSE)
 layout(Conf2x2)
 layout.show(6)
-barplot(aux[0:47])
-barplot(aux[0:10])
-barplot(aux[11:20])
-barplot(aux[21:29])
-barplot(aux[30:39])
-barplot(aux[39:47])
+barplot(aux[0:47], main = "from 1970 to 2017")
+barplot(aux[0:10], main = "from 1970 to 1979")
+barplot(aux[11:20], main = "from 1980 to 1989")
+barplot(aux[21:29], main = "from 1990 to 1999", sub = "(no data from 1993)")
+barplot(aux[30:39], main = "from 2000 to 2009")
+barplot(aux[39:47], main = "from 2010 to 2017")
 x11()
 ```
 We can see that the year with most acts of terrorism is by far 1970. In the last graph 2009-2017 we can clearly see that there is an increasing tendency.
@@ -299,48 +347,69 @@ We can see that the year with most acts of terrorism is by far 1970. In the last
 #### n º acts / month
 
 In this analysis we want to see what is the distribution of acts of terrorism over the months in order to see if there is any anomaly.
+
 ```{r}
-class(mydata$date)
 mydata$date = as.Date(mydata$date, "%Y-%m-%d")
 mydata$month = as.numeric(format(mydata$date, "%m"))
 aux = table(mydata$month);
-barplot(aux)
+barplot(aux, main = "Number of terrorism acts by month", names.arg = c('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep', 'Oct', 'Nov', 'Dec'))
 ```
-The acts are fairly distributed, with the preferred month being May and the least favorite being November.
+
+The acts are fairly uniform distributed, with the preferred month being May and the least favorite being November.
+
+#### provstate / gname
+
+This two categorical variable seems interesting to analyze, but first we need to bee sure if there is a relation between them. As we know  for this we can use chi square test.
+
+```{r, warning=FALSE}
+summary(mydata$provstate)
+summary(mydata$gname)
+chisq.test(mydata$provstate, mydata$gname)
+```
+
+With a p-value of 2.2e-16 we can reject this test's null hypothesis and conclude this variables are in fact dependent.
 
 #### provstate (top 3 provstate) / gname
 
 In this analysis we want to see the distributions of acts of terrorism by each group in the 3 most striked states.
+
 ```{r}
 aux = mydata$gname[mydata$provstate == 'California']
 aux=as.data.frame(table(aux))
 aux = aux[aux$Freq > 9,]
-plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie') %>%
+  layout(title = 'Pie Chart of different gname in California')
 ```
 
 ```{r}
 aux = mydata$gname[mydata$provstate == 'New York']
 aux=as.data.frame(table(aux))
 aux = aux[aux$Freq > 9,]
-plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie',height = 500) %>%
+  layout(title = 'Pie Chart of different gname in New York',
+         legend = list(orientation = "h", xanchor = "center", x = 0.5))
 ```
 
 ```{r}
 aux = mydata$gname[mydata$provstate == 'Puerto Rico']
 aux=as.data.frame(table(aux))
 aux = aux[aux$Freq > 9,]
-plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie') %>%
+  layout(title = 'Pie Chart of different gname in Puerto Rico',
+         legend = list(orientation = "h", xanchor = "center", x = 0.5))
 
 ```
 
 #### provstate / gname (top 3 gname)
 
 In this analysis we want to identify in which states a given gname has committed acts of terrorism. This will provide us insight of the group's target population.
+
 ```{r}
 aux = mydata$provstate[mydata$gname == 'Anti-Abortion extremists']
 aux=as.data.frame(table(aux))
-plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie', height = 530)
 ```
+
 We can see that this group widely distributed theirs acts of terrorism over the states.
 
 ```{r}
@@ -348,6 +417,7 @@ aux = mydata$provstate[mydata$gname == 'Left-Wing Militants']
 aux=as.data.frame(table(aux))
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
 ```
+
 We can see that this group's acts were fairly distributed although half of them were targeted to the two main victim states.
 
 ```{r}
@@ -355,20 +425,16 @@ aux = mydata$provstate[mydata$gname == 'Fuerzas Armadas de Liberacion Nacional (
 aux=as.data.frame(table(aux))
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
 ```
+
 In this case we can clearly see that the acts were targeted towards the states of New York, Illinois and Puerto Rico.
-
-
-```{r}
-aux = table(mydata$gname ,mydata$provstate)
-chisq.test(aux)
-```
 
 
 #### Event Rate / state_governor_party (top 3 provstates)
 
 We want to know what is the percentatge of acts committed while the rule of each state_governor_party. Only the 3 states with most recorded acts will be considered because in some of the states the sample size would be too small.
 
-First we will check California as it is the first state with most recorded acts of terrorism (532). 
+First we will check California as it is the first state with most recorded acts of terrorism (532).
+
 ```{r}
 aux = mydata$state_governor_party[mydata$provstate == 'California']
 aux = as.data.frame(table(aux))
@@ -376,30 +442,35 @@ aux = aux[aux$Freq > 9,]
 aux = aux[aux$Freq < 200,]
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
 ```
+
 Not considering the outliers, we can see that 69.9% of the acts where committed in this state while the Democrat party was ruling.
 
 We will do the same analysis with New York as it is the second state with most recorded acts of terrorism (473).
+
 ```{r}
 aux = mydata$state_governor_party[mydata$provstate == 'New York']
 aux = as.data.frame(table(aux))
 aux = aux[aux$Freq > 9,]
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
 ```
+
 In this case the ratio is more equaly distributed, with 51.6% for the Democrats
 
 Lastly we will do the same analysis with Puerto Rico as it is the third state with most recorded acts of terrorism (226).
+
 ```{r}
 aux = mydata$state_governor_party[mydata$provstate == 'Puerto Rico']
 aux = as.data.frame(table(aux))
 aux = aux[aux$Freq > 9,]
 plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
 ```
-In the pie we can see that 65.3% of the acts were commited while the New Progressive Party was ruling.
 
+In the pie we can see that 65.3% of the acts were commited while the New Progressive Party was ruling.
 
 #### Success Rate / president_party
 
 In this analysis we want to check what is the ratio of success of terrorism acts while each president_party was ruling.
+
 ```{r}
 success = mydata$president_party[mydata$success == TRUE]
 fail = mydata$president_party[mydata$success == FALSE]
@@ -411,6 +482,6 @@ tf = 100*fail[2]/s
 
 b=data.frame(Rate=c("Success","Fail"),Freq = c(ts[1,1],tf[1,1])) 
 View(b)
-plot_ly(b, labels = ~b, values = ~Freq, type = 'pie')
+plot_ly(b, labels = ~Rate, values = ~Freq, type = 'pie')
 ```
 

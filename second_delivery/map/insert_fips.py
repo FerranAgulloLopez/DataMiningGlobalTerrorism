@@ -3,8 +3,8 @@ import pandas as pd
 def generate_dictionary_fips_city(file):
     dictionary = {}
     for index, row in file.iterrows():
-        city_name = row['Name'].lower()
-        dictionary[city_name] = row['FIPS']
+        city_name = row['city'].lower()
+        dictionary[city_name] = row['county_fips']
     return dictionary
 
 def generate_dictionary_fips_state(file):
@@ -15,7 +15,7 @@ def generate_dictionary_fips_state(file):
     return dictionary
 
 data = pd.read_csv('../datasets/longitudeFixed.csv', sep=',')
-fips_city = pd.read_csv('../datasets/fips_codes_city.csv', sep=',')
+fips_city = pd.read_csv('../datasets/fips_codes_city.csv', sep=',') # https://simplemaps.com/data/us-cities
 fips_state = pd.read_csv('../datasets/fips_codes_state.csv', sep=',')
 
 dictionary_fips_city = generate_dictionary_fips_city(fips_city)
@@ -30,7 +30,6 @@ count__fips_state_inserted = 0
 for index, row in data.iterrows():
     
     # city
-
     city = str(row['city']).lower()
     value = "NA"
     if city in dictionary_fips_city:

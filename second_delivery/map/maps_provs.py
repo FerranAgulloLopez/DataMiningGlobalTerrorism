@@ -4,24 +4,40 @@ import folium
 import requests
 import pandas as pd
 
+total_warns = 0
 
+
+data = pd.read_csv('../datasets/fips-codes-added.csv')
 url = 'https://raw.githubusercontent.com/python-visualization/folium/master/examples/data'
-county_data = f'{url}/us_county_data.csv'
 county_geo = f'{url}/us_counties_20m_topo.json'
 
+colorscale = branca.colormap.linear.YlOrRd_09.scale(0, 100)
 
-df = pd.read_csv(county_data, na_values=[' '])
+dict_fips = {}
+for index, row in data.iterrows():
+     fip = str(row['city_fips']).replace('.0','')
+     if fip != 'nan':
+        if fip in dict_fips:
+            num = dict_fips[fip]
+            dict_fips[fip] = num + 1
+        else:
+            dict_fips[fip] = 1
 
-colorscale = branca.colormap.linear.YlOrRd_09.scale(0, 50e3)
-employed_series = df.set_index('FIPS_Code')['Employed_2011']
-
+print(dict_fips)
 
 def style_function(feature):
-    employed = employed_series.get(int(feature['id'][-5:]), None)
+    global total_warns
+    fip = feature['id'][-5:]
+    color = 'white'
+    if fip in dict_fips:
+        count = dict_fips[fip]
+        color = colorscale(count)
+    else:
+        total_warns += 1
     return {
         'fillOpacity': 0.5,
         'weight': 0,
-        'fillColor': '#black' if employed is None else colorscale(employed)
+        'fillColor': color
     }
 
 
@@ -37,5 +53,5 @@ folium.TopoJson(
     style_function=style_function
 ).add_to(m)
 
-
-m.save('heatmap_provs.html')
+m.save('html_files/map_provs.html')
+print('Total empty fips: ' + str(total_warns))

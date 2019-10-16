@@ -17,7 +17,7 @@ class(pc1)
 attributes(pc1)
 
 print(pc1)
-#PC1 = Sangría, PC2 = Heridos no muertos civiles (Cuanto se salvó la gente), PC3 = Terroristas heridos *-1
+#PC1 = Sangr?a, PC2 = Heridos no muertos civiles (Cuanto se salv? la gente), PC3 = Terroristas heridos *-1
 # WHICH PERCENTAGE OF THE TOTAL INERTIA IS REPRESENTED IN SUBSPACES?
 pc1$sdev
 inerProj<- pc1$sdev^2 
@@ -55,20 +55,23 @@ eje1<-1
 eje2<-2
 eje3<-3
 
-plot(Psi[,eje1],Psi[,eje2])
 #text(Psi[,eje1],Psi[,eje2],labels=iden, cex=0.5)
+#plot(Psi[,eje1],Psi[,eje2])
+plot(Psi[,eje1],Psi[,eje2], xlim=c(-1,7), ylim=c(-3,9))
 axis(side=1, pos= 0, labels = F, col="red")
 axis(side=3, pos= 0, labels = F, col="red")
 axis(side=2, pos= 0, labels = F, col="red")
 axis(side=4, pos= 0, labels = F, col="red")
 
-plot(Psi[,eje1],Psi[,eje3])
+#plot(Psi[,eje1],Psi[,eje3])
+plot(Psi[,eje1],Psi[,eje3], xlim=c(-1,7), ylim=c(-6,2))
 axis(side=1, pos= 0, labels = F, col="red")
 axis(side=3, pos= 0, labels = F, col="red")
 axis(side=2, pos= 0, labels = F, col="red")
 axis(side=4, pos= 0, labels = F, col="red")
 
-plot(Psi[,eje2],Psi[,eje3])
+#plot(Psi[,eje2],Psi[,eje3])
+plot(Psi[,eje2],Psi[,eje3], xlim=c(-3,9), ylim=c(-6,2))
 axis(side=1, pos= 0, labels = F, col="red")
 axis(side=3, pos= 0, labels = F, col="red")
 axis(side=2, pos= 0, labels = F, col="red")
@@ -91,7 +94,7 @@ Z<-Phi[,eje3]
 
 
 #zooms
-plot(Psi[,eje1],Psi[,eje2],type="n",xlim=c(min(X,0),max(X,0)))
+plot(Psi[,eje1],Psi[,eje2],type="n",xlim=c(min(X,0),max(X,0)),ylim=c(min(Y,0),max(Y,0)))
 axis(side=1, pos= 0, labels = F)
 axis(side=3, pos= 0, labels = F)
 axis(side=2, pos= 0, labels = F)
@@ -102,7 +105,7 @@ text(X,Y,labels=etiq,col="blue", cex=0.7)
 #Now we project both cdgs of levels of a selected qualitative variable without
 #representing the individual anymore
 
-plot(Psi[,eje1],Psi[,eje2],type="n",xlim=c(-1,13))
+plot(Psi[,eje1],Psi[,eje2],type="n",xlim=c(-1,13), ylim=c(-5,5))
 axis(side=1, pos= 0, labels = F, col="gray")
 axis(side=3, pos= 0, labels = F, col="gray")
 axis(side=2, pos= 0, labels = F, col="grey")
@@ -185,25 +188,46 @@ legend("topright",names(dd)[dcat],pch=1,col=colors, cex=0.6)
 #legend("topright",names(dd)[dcat],pch=1,col=colors, cex=0.6)
 
 # PROJECTION OF ILLUSTRATIVE qualitative variables on individuals' map
-# PROJECCIÓ OF INDIVIDUALS DIFFERENTIATING THE Dictamen
+# PROJECCI? OF INDIVIDUALS DIFFERENTIATING THE Dictamen
 # (we need a numeric Dictamen to color)
 
 varcat=dd[,29]
-plot(Psi[,1],Psi[,2],col=varcat,xlim=c(-1,20), ylim=c(-3,20))
+plot(Psi[,1],Psi[,2],col=varcat,xlim=c(-1,20), ylim=c(-3,15), pch=16)
 axis(side=1, pos= 0, labels = F, col="darkgray")
 axis(side=3, pos= 0, labels = F, col="darkgray")
 axis(side=2, pos= 0, labels = F, col="darkgray")
 axis(side=4, pos= 0, labels = F, col="darkgray")
-legend("topright",levels(varcat),pch=1,col=c(1,2), cex=0.6)
+legend("topright",levels(varcat),pch=16,col=c(1,2), cex=0.6)
 
 varcat=dd[,10]
-plot(Psi[,1],Psi[,2],col=varcat,xlim=c(-1,20), ylim=c(-3,20))
+plot(Psi[,1],Psi[,2],col=varcat,xlim=c(-1,20), ylim=c(-3,15), pch=16)
 axis(side=1, pos= 0, labels = F, col="darkgray")
 axis(side=3, pos= 0, labels = F, col="darkgray")
 axis(side=2, pos= 0, labels = F, col="darkgray")
 axis(side=4, pos= 0, labels = F, col="darkgray")
-legend("topright",levels(varcat),pch=1,col=c(1,2), cex=0.6)
+legend("topright",levels(varcat),pch=16,col=c(1,2), cex=0.6)
 
+varcat=dd[,11]
+plot(Psi[,1],Psi[,2],col=varcat,xlim=c(-1,20), ylim=c(-3,15), pch=16)
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=seq(1,8,1), cex=0.6)
+
+varcat=dd[,11]
+plot(Psi[,1],Psi[,2],col=varcat, pch=16)
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=seq(1,8,1), cex=0.6)
+
+# category centroids
+plot(Psi[,eje1],Psi[,eje2],type="n",xlim=c(-0.5,10),ylim=c(-3,3))
+points(tapply(Psi[,eje1],dd[,11],mean),
+       tapply(Psi[,eje2],dd[,11],mean), pch=16, col=seq(1,8,1))
+legend("topright",levels(dd[,11]),pch=16,col=seq(1,8,1), cex=0.8)
 
 # Overproject THE CDG OF  LEVELS OF varcat
 #fdic1 = tapply(Psi[,1],varcat,mean)

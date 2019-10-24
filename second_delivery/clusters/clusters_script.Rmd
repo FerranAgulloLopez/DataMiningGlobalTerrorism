@@ -1,0 +1,141 @@
+---
+pdf_document: default
+author: "Team 2 Group 11"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+title: "Bivariate statistical analysis of relevant variables"
+header-includes:
+- \usepackage{lscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE}
+if(!require("cluster"))install.packages("cluster"); require("cluster")
+```
+
+# First steps 
+
+We first load the dataset.
+
+```{r}
+mydata = read.csv("../datasets/longitudeFixed.csv")
+```
+
+```{r}
+names(mydata)
+```
+
+post preproceso mal hecho
+```{r}
+mydata$nkillter[which(is.na(mydata$nkillter))] <- 0
+mydata$nwoundus[which(is.na(mydata$nwoundus))] <- 0
+mydata$nwoundte[which(is.na(mydata$nwoundte))] <- 0
+```
+
+We make a subset of the numerical variables of the dataset to work with in the next sections.
+```{r}
+mydatanumeric <- data.frame (mydata$nkill,mydata$nkillus,mydata$nkillter,mydata$nwound,mydata$nwoundus,mydata$nwoundte)
+```
+
+# Clustering
+
+In order to find the appropiate number of clusters we start the hierarchical clustering.
+
+## Hierarchical clustering
+
+### Clusters partition
+
+We generate the cluster dendrogram from our numerical variables.
+```{r}
+d  <- dist(mydatanumeric)
+h1 <- hclust(d,method="ward.D")
+plot(h1)
+```
+
+We can see an outlier very clearly so we proceed to delete it and redo the dendrogram.
+
+```{r}
+mydatanumeric <- mydatanumeric[-c(1703),] 
+d  <- dist(mydatanumeric)
+h1 <- hclust(d,method="ward.D")
+plot(h1)
+```
+
+We can see that the majority of observations (1703) are very similar and are inside the same cluster. The others are distributed in different clusters. We think that the best approach is to cut the dendogram in 4 clusters. We will then test the quality of the hierarchical partition.
+
+```{r}
+nc = 4
+c1 <- cutree(h1,nc)
+table(c1)
+```
+
+We now are gonna visualize the main cararecticts of the different clusters. In the next table we can see the mean of each variable for each cluster.
+
+```{r}
+cdg <- aggregate(as.data.frame(mydatanumeric),list(c1),mean)
+cdg
+```
+
+We can clearly see that the first cluster agroups all the observations with 0 values in they variables. The other three represent the different scales of bloody attacks.
+
+
+
+```{r}
+par(mfrow=c(2,3))
+dev.new(width=5, height=4)
+plot(cdg$mydata.nkill,cdg$mydata.Group.1,main="Comparison of the mean of kills in the 4 different classes",xlab="Cluster number",ylab="Number of kills")
+plot(cdg$mydata.nkillus,cdg$mydata.Group.1,main="Comparison of the mean of us kills in the 4 different classes",xlab="Cluster number",ylab="Number of us kills")
+plot(cdg$mydata.nkillter,cdg$mydata.Group.1,main="Comparison of the mean of terrorist kills in the 4 different classes",xlab="Cluster number",ylab="Number of terrorist kills")
+plot(cdg$mydata.nwound,cdg$mydata.Group.1,main="Comparison of the mean of wound people in the 4 different classes",xlab="Cluster number",ylab="Number of wound people")
+plot(cdg$mydata.nwoundus,cdg$mydata.Group.1,main="Comparison of the mean of us wound people in the 4 different classes",xlab="Cluster number",ylab="Number of us wound people")
+plot(cdg$mydata.nwoundte,cdg$mydata.Group.1,main="Comparison of the mean of wound terrorists in the 4 different classes",xlab="Cluster number",ylab="Number of wound terrorists")
+```
+
+As it can be seen the four clusters are the different scales of bloody attacks. The only exception is the number of wound terrorists.
+
+### Partition quality
+
+Now we are gonna see the quality of our previous partition. Specifically we are gonna measure the quality via the separation, the between cluster sum of squares. 
+
+```{r}
+Bss <- sum(rowSums(cdg^2)*as.numeric(table(c1)))
+
+Ib4 <- 100*Bss/Tss  #### ---->>>>  TSSS la pilla del kmeans
+Ib4
+```
+############################ acabar de explicar y comparar con otras descomposiciones
+
+### Representation of not numerical variables
+
+We are using Gower mixed distance to deal simoultaneously with numerical and qualitative data. In this way we can conclude more things of the partition of clusters.
+
+```{r warning=FALSE}
+#names(mydata)
+actives<-c(2,4,5,7,8,9,10,11,12,13,14,16,17,18,19,20,21,22,23,26,27)
+dissimMatrix <- daisy(mydata[,actives], metric = "gower", stand=TRUE)
+distMatrix<-dissimMatrix^2
+h1 <- hclust(distMatrix,method="ward.D") 
+plot(h1)
+```
+
+We cut the dendrogram in 4 clusters.
+
+```{r}
+c2 <- cutree(h1,4)
+table(c2)
+```
+
+We can see that the the observations are much better distributed than before being the cluster 2 the one more populated. 
+
+# Kmeans
+# Profiling clusters ...
+
+

@@ -33,7 +33,7 @@ mydata = read.csv("../datasets/longitudeFixed.csv")
 names(mydata)
 ```
 
-post preproceso mal hecho
+post preproceso mal hecho (meter en otro script)
 ```{r}
 mydata$nkillter[which(is.na(mydata$nkillter))] <- 0
 mydata$nwoundus[which(is.na(mydata$nwoundus))] <- 0
@@ -68,7 +68,7 @@ k1 <- kmeans(mydatanumeric,4)
 print(k1$size)
 ```
 
-And then cluster centers.
+And then the cluster centers.
 ```{r}
 print(k1$centers)
 ```
@@ -128,53 +128,11 @@ plot(cdg$mydata.nwoundte,cdg$mydata.Group.1,main="Comparison of the mean of woun
 
 As it can be seen the four clusters are the different scales of bloody attacks. The only exception is the number of wound terrorists.
 
-### Partition quality
-
-Now we are gonna see the quality of our previous partition. Specifically we are gonna measure the quality via the separation, the between cluster sum of squares. 
+Let's now compare with the categorical and logical variables.
 
 ```{r}
-v <- c()
-mydatanumeric["cluster"] <- c1
-for(i in 1:10){
-  v[i] <- sum(scale(subset(mydatanumeric, mydatanumeric$cluster==i), scale=FALSE)^2)
-}
-plot(v, type="b", pch=19, xlab="Number clusters", ylab="BSS")
-```
-
-We can see that 4 clusters is the right selection of the number of clusters.
-
-### Representation of not numerical variables
-
-We are using Gower mixed distance to deal simoultaneously with numerical and qualitative data. In this way we can conclude more things of the previous partition of clusters.
-
-```{r warning=FALSE}
-names(mydata)
-actives<-c(7,8,9,10,11,12,13,14,16,17,18,19,20,21,22,23,26,27)
-dissimMatrix <- daisy(mydata[,actives], metric = "gower", stand=TRUE)
-distMatrix<-dissimMatrix^2
-h1 <- hclust(distMatrix,method="ward.D") 
-plot(h1)
-```
-
-We cut the dendrogram in 4 clusters.
-
-```{r}
-c2 <- cutree(h1,4)
-table(c2)
-```
-
-We can see that the the observations are much better distributed than before being the cluster 2 the one more populated. 
-
-```{r}
-cdg <- aggregate(as.data.frame(mydatanumeric),list(c2),mean)
-cdg
-```
-
-With the previous mean table we can not clearly see the differences between the different clusters. Let's plot the cluster means with the qualitive variables.
-
-```{r warning=FALSE}
-mydataclusters <- as.data.frame(mydata[,actives])
-mydataclusters$cluster <- c2
+mydataclusters <- as.data.frame(mydata[,])
+mydataclusters$cluster <- c1
 names(mydataclusters)
 ```
 
@@ -187,7 +145,7 @@ mydataclusters_4 <- subset(mydataclusters, cluster==4)
 
 ```{r}
 par(mfrow=c(2,3))
-dev.new(width=10, height=7)
+dev.new(width=30, height=7)
 
 #success
 #summary(mydata$success)
@@ -229,5 +187,71 @@ clusters_targtype <- matrix(as.vector(t(targtype_clusters)),ncol=4,byrow=TRUE)
 colnames(clusters_targtype) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
 rownames(clusters_targtype) <- rownames(targtype_clusters)
 counts <- as.table(clusters_targtype)
-barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab="%",legend = rownames(counts))
+barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab="%",legend.text=TRUE,args.legend=list(
+      x=ncol(counts) + 3,
+      y=max(colSums(counts)),
+      bty = "n"
+    ))
 ```
+
+FALTA ->
+  poner todas las variables que haya que comentar
+  comentar diferencias para cada cluster de las anteriores variables
+
+### Partition quality
+
+Now we are gonna see the quality of our previous partition. Specifically we are gonna measure the quality via the separation, the between cluster sum of squares. 
+
+```{r}
+v <- c()
+mydatanumeric["cluster"] <- c1
+for(i in 1:10){
+  v[i] <- sum(scale(subset(mydatanumeric, mydatanumeric$cluster==i), scale=FALSE)^2)
+}
+plot(v, type="b", pch=19, xlab="Number clusters", ylab="BSS")
+```
+We can see that 4 clusters is the right selection of the number of clusters.
+
+### Clusters partition with qualitive variables
+
+We are using Gower mixed distance to deal simoultaneously with numerical and qualitative data. In this way we can conclude more things of the previous partition of clusters.
+
+```{r warning=FALSE}
+names(mydata)
+actives<-c(7,8,9,10,11,12,13,14,16,17,18,19,20,21,22,23,26,27)
+dissimMatrix <- daisy(mydata[,actives], metric = "gower", stand=TRUE)
+distMatrix<-dissimMatrix^2
+h1 <- hclust(distMatrix,method="ward.D") 
+plot(h1)
+```
+
+We cut the dendrogram in 4 clusters.
+
+```{r}
+c2 <- cutree(h1,4)
+table(c2)
+```
+
+We can see that the the observations are much better distributed than before being the cluster 2 the one more populated. 
+
+```{r}
+cdg <- aggregate(as.data.frame(mydatanumeric),list(c2),mean)
+cdg
+```
+
+With the previous mean table we can not clearly see the differences between the different clusters. Let's plot the cluster means with the qualitive variables.
+
+```{r warning=FALSE}
+mydataclusters <- as.data.frame(mydata[,actives])
+mydataclusters$cluster <- c2
+names(mydataclusters)
+```
+
+```{r}
+mydataclusters_1 <- subset(mydataclusters, cluster==1)
+mydataclusters_2 <- subset(mydataclusters, cluster==2)
+mydataclusters_3 <- subset(mydataclusters, cluster==3)
+mydataclusters_4 <- subset(mydataclusters, cluster==4)
+```
+
+FALTA -> encontrar porque los clusters son como son y comparar entre ellos

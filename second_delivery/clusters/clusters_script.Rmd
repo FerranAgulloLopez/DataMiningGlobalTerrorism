@@ -23,7 +23,7 @@ if(!require("cluster"))install.packages("cluster"); require("cluster")
 
 # First steps 
 
-We first load the dataset.
+We first load the dataset and make a subset of the numerical variables.
 
 ```{r}
 mydata = read.csv("../datasets/longitudeFixed.csv")
@@ -47,7 +47,33 @@ mydatanumeric <- data.frame (mydata$nkill,mydata$nkillus,mydata$nkillter,mydata$
 
 # Clustering
 
-In order to find the appropiate number of clusters we start the hierarchical clustering.
+## Kmeans
+
+We start using the Elbow method to find the appropriate number of clusters.
+
+```{r}
+VE <- c()
+for(k in 1:10){
+  km <- kmeans(mydatanumeric, centers=k)
+  VE[k] <- km$tot.withinss/km$totss
+}
+plot(VE, type="b", pch=19, xlab="Number of clusters", ylab="WSS")
+```
+
+We are gonna use 4 clusters because adding another cluster doesn't give much better modeling of the data, 4 clusters already explain the majority of the variance of our dataset.
+
+We first show the cluster sizes.
+```{r}
+k1 <- kmeans(mydatanumeric,4)
+print(k1$size)
+```
+
+And then cluster centers.
+```{r}
+print(k1$centers)
+```
+
+We see that the majority of the observations are grouped in the same cluster. We also can see that the cluster number 2 is an outlier. This implies that we not can extract a lot of information of these clusters. We are gonna try again with the hierarchical clustering hoping to get better results.
 
 ## Hierarchical clustering
 
@@ -64,12 +90,13 @@ We can see an outlier very clearly so we proceed to delete it and redo the dendr
 
 ```{r}
 mydatanumeric <- mydatanumeric[-c(1703),] 
+mydata <- mydata[-c(1703),] 
 d  <- dist(mydatanumeric)
 h1 <- hclust(d,method="ward.D")
 plot(h1)
 ```
 
-We can see that the majority of observations (1703) are very similar and are inside the same cluster. The others are distributed in different clusters. We think that the best approach is to cut the dendogram in 4 clusters. We will then test the quality of the hierarchical partition.
+We can see that the majority of observations (1703) are very similar and are inside the same cluster. The others are distributed in different clusters. We think that the best approach is to cut the dendogram in 4 clusters as seen before.
 
 ```{r}
 nc = 4
@@ -86,7 +113,7 @@ cdg
 
 We can clearly see that the first cluster agroups all the observations with 0 values in they variables. The other three represent the different scales of bloody attacks.
 
-
+We are now plotting the differences of each cluster in the 6 different numerical variables.
 
 ```{r}
 par(mfrow=c(2,3))
@@ -106,20 +133,23 @@ As it can be seen the four clusters are the different scales of bloody attacks. 
 Now we are gonna see the quality of our previous partition. Specifically we are gonna measure the quality via the separation, the between cluster sum of squares. 
 
 ```{r}
-Bss <- sum(rowSums(cdg^2)*as.numeric(table(c1)))
-
-Ib4 <- 100*Bss/Tss  #### ---->>>>  TSSS la pilla del kmeans
-Ib4
+v <- c()
+mydatanumeric["cluster"] <- c1
+for(i in 1:10){
+  v[i] <- sum(scale(subset(mydatanumeric, mydatanumeric$cluster==i), scale=FALSE)^2)
+}
+plot(v, type="b", pch=19, xlab="Number clusters", ylab="BSS")
 ```
-############################ acabar de explicar y comparar con otras descomposiciones
+
+We can see that 4 clusters is the right selection of the number of clusters.
 
 ### Representation of not numerical variables
 
-We are using Gower mixed distance to deal simoultaneously with numerical and qualitative data. In this way we can conclude more things of the partition of clusters.
+We are using Gower mixed distance to deal simoultaneously with numerical and qualitative data. In this way we can conclude more things of the previous partition of clusters.
 
 ```{r warning=FALSE}
-#names(mydata)
-actives<-c(2,4,5,7,8,9,10,11,12,13,14,16,17,18,19,20,21,22,23,26,27)
+names(mydata)
+actives<-c(7,8,9,10,11,12,13,14,16,17,18,19,20,21,22,23,26,27)
 dissimMatrix <- daisy(mydata[,actives], metric = "gower", stand=TRUE)
 distMatrix<-dissimMatrix^2
 h1 <- hclust(distMatrix,method="ward.D") 
@@ -135,7 +165,69 @@ table(c2)
 
 We can see that the the observations are much better distributed than before being the cluster 2 the one more populated. 
 
-# Kmeans
-# Profiling clusters ...
+```{r}
+cdg <- aggregate(as.data.frame(mydatanumeric),list(c2),mean)
+cdg
+```
 
+With the previous mean table we can not clearly see the differences between the different clusters. Let's plot the cluster means with the qualitive variables.
 
+```{r warning=FALSE}
+mydataclusters <- as.data.frame(mydata[,actives])
+mydataclusters$cluster <- c2
+names(mydataclusters)
+```
+
+```{r}
+mydataclusters_1 <- subset(mydataclusters, cluster==1)
+mydataclusters_2 <- subset(mydataclusters, cluster==2)
+mydataclusters_3 <- subset(mydataclusters, cluster==3)
+mydataclusters_4 <- subset(mydataclusters, cluster==4)
+```
+
+```{r}
+par(mfrow=c(2,3))
+dev.new(width=10, height=7)
+
+#success
+#summary(mydata$success)
+success_1_true <- length(which(mydataclusters_1$success == TRUE))/nrow(mydataclusters_1)
+success_1_false <- length(which(mydataclusters_1$success == FALSE))/nrow(mydataclusters_1)
+success_2_true <- length(which(mydataclusters_2$success == TRUE))/nrow(mydataclusters_2)
+success_2_false <- length(which(mydataclusters_2$success == FALSE))/nrow(mydataclusters_2)
+success_3_true <- length(which(mydataclusters_3$success == TRUE))/nrow(mydataclusters_3)
+success_3_false <- length(which(mydataclusters_3$success == FALSE))/nrow(mydataclusters_3)
+success_4_true <- length(which(mydataclusters_4$success == TRUE))/nrow(mydataclusters_4)
+success_4_false <- length(which(mydataclusters_4$success == FALSE))/nrow(mydataclusters_4)
+clusters_success <- matrix(c(success_1_true,success_1_false,success_2_true,success_2_false,success_3_true,success_3_false,success_4_true,success_4_false),ncol=4,byrow=FALSE)
+colnames(clusters_success) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
+rownames(clusters_success) <- c("true","false")
+counts <- as.table(clusters_success)
+barplot(counts, main="Success variable",xlab="Cluster number",ylab="%", col=c("darkblue","red"),legend = rownames(counts))
+
+#attacktype1_txt
+#summary(mydata$attacktype1_txt)
+attacktype_clusters <- as.data.frame(summary(mydataclusters_1$attacktype1_txt))/nrow(mydataclusters_1)
+attacktype_clusters$cluster_2 <- as.vector((as.data.frame(summary(mydataclusters_2$attacktype1_txt))/nrow(mydataclusters_2))[,])
+attacktype_clusters$cluster_3 <- as.vector((as.data.frame(summary(mydataclusters_3$attacktype1_txt))/nrow(mydataclusters_3))[,])
+attacktype_clusters$cluster_4 <- as.vector((as.data.frame(summary(mydataclusters_4$attacktype1_txt))/nrow(mydataclusters_4))[,])
+colnames(attacktype_clusters) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
+clusters_attacktype <- matrix(as.vector(t(attacktype_clusters)),ncol=4,byrow=TRUE)
+colnames(clusters_attacktype) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
+rownames(clusters_attacktype) <- rownames(attacktype_clusters)
+counts <- as.table(clusters_attacktype)
+barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab="%",legend = rownames(counts))
+
+#targtype1_txt
+#summary(mydata$targtype1_txt)
+targtype_clusters <- as.data.frame(summary(mydataclusters_1$targtype1_txt))/nrow(mydataclusters_1)
+targtype_clusters$cluster_2 <- as.vector((as.data.frame(summary(mydataclusters_2$targtype1_txt))/nrow(mydataclusters_2))[,])
+targtype_clusters$cluster_3 <- as.vector((as.data.frame(summary(mydataclusters_3$targtype1_txt))/nrow(mydataclusters_3))[,])
+targtype_clusters$cluster_4 <- as.vector((as.data.frame(summary(mydataclusters_4$targtype1_txt))/nrow(mydataclusters_4))[,])
+colnames(targtype_clusters) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
+clusters_targtype <- matrix(as.vector(t(targtype_clusters)),ncol=4,byrow=TRUE)
+colnames(clusters_targtype) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
+rownames(clusters_targtype) <- rownames(targtype_clusters)
+counts <- as.table(clusters_targtype)
+barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab="%",legend = rownames(counts))
+```

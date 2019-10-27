@@ -96,7 +96,7 @@ h1 <- hclust(d,method="ward.D")
 plot(h1)
 ```
 
-We can see that the majority of observations (1703) are very similar and are inside the same cluster. The others are distributed in different clusters. We think that the best approach is to cut the dendogram in 4 clusters as seen before.
+We can see that the majority of observations (2209) are very similar and are inside the same cluster. The others are distributed in different clusters. We think that the best approach is to cut the dendogram in 4 clusters as seen before.
 
 ```{r}
 nc = 4
@@ -192,6 +192,45 @@ barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab=
       y=max(colSums(counts)),
       bty = "n"
     ))
+
+#claimmode_txt (full of NA's)
+#summary(mydata$claimmode_txt)
+claimmode_clusters <- as.data.frame(summary(mydataclusters_1$claimmode_txt))/nrow(mydataclusters_1)
+claimmode_clusters$cluster_2 <- as.vector((as.data.frame(summary(mydataclusters_2$claimmode_txt))/nrow(mydataclusters_2))[,])
+claimmode_clusters$cluster_3 <- as.vector((as.data.frame(summary(mydataclusters_3$claimmode_txt))/nrow(mydataclusters_3))[,])
+claimmode_clusters$cluster_4 <- as.vector((as.data.frame(summary(mydataclusters_4$claimmode_txt))/nrow(mydataclusters_4))[,])
+colnames(claimmode_clusters) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
+clusters_claimmode <- matrix(as.vector(t(claimmode_clusters)),ncol=4,byrow=TRUE)
+colnames(clusters_claimmode) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
+rownames(clusters_claimmode) <- rownames(claimmode_clusters)
+counts <- as.table(clusters_claimmode)
+barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab="%",legend = rownames(counts))
+
+#weaptype1_txt
+#summary(mydata$weaptype1_txt)
+weaptype_clusters <- as.data.frame(summary(mydataclusters_1$weaptype1_txt))/nrow(mydataclusters_1)
+weaptype_clusters$cluster_2 <- as.vector((as.data.frame(summary(mydataclusters_2$weaptype1_txt))/nrow(mydataclusters_2))[,])
+weaptype_clusters$cluster_3 <- as.vector((as.data.frame(summary(mydataclusters_3$weaptype1_txt))/nrow(mydataclusters_3))[,])
+weaptype_clusters$cluster_4 <- c(as.vector((as.data.frame(summary(mydataclusters_4$weaptype1_txt))/nrow(mydataclusters_4))[,]),0)
+colnames(weaptype_clusters) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
+clusters_weaptype <- matrix(as.vector(t(weaptype_clusters)),ncol=4,byrow=TRUE)
+colnames(clusters_weaptype) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
+rownames(clusters_weaptype) <- rownames(weaptype_clusters)
+counts <- as.table(clusters_weaptype)
+barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab="%",legend = rownames(counts))
+
+#president_party
+#summary(mydata$president_party)
+president_party_clusters <- as.data.frame(summary(mydataclusters_1$president_party))/nrow(mydataclusters_1)
+president_party_clusters$cluster_2 <- as.vector((as.data.frame(summary(mydataclusters_2$president_party))/nrow(mydataclusters_2))[,])
+president_party_clusters$cluster_3 <- as.vector((as.data.frame(summary(mydataclusters_3$president_party))/nrow(mydataclusters_3))[,])
+president_party_clusters$cluster_4 <- as.vector((as.data.frame(summary(mydataclusters_4$president_party))/nrow(mydataclusters_4))[,])
+colnames(president_party_clusters) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
+clusters_president_party <- matrix(as.vector(t(president_party_clusters)),ncol=4,byrow=TRUE)
+colnames(clusters_president_party) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
+rownames(clusters_president_party) <- rownames(president_party_clusters)
+counts <- as.table(clusters_president_party)
+barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab="%",legend = rownames(counts))
 ```
 
 FALTA ->
@@ -235,7 +274,7 @@ table(c2)
 We can see that the the observations are much better distributed than before being the cluster 2 the one more populated. 
 
 ```{r}
-cdg <- aggregate(as.data.frame(mydatanumeric),list(c2),mean)
+cdg <- aggregate(as.data.frame(mydatanumeric[,1:6]),list(c2),mean)
 cdg
 ```
 

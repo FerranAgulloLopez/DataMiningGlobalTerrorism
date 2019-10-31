@@ -1,0 +1,38 @@
+---
+pdf_document: default
+author: "Team 2 Group 11"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+title: "Postpreprocessing"
+header-includes:
+- \usepackage{lscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+---
+
+```{r setup, include=FALSE}
+mydata <- read.csv("../datasets/longitudeFixed.csv",header=T, sep=",");
+```
+
+We will delete the columns that have more NA's than actual values, and for the ones that will be used in later scripts, we interpolate the vaule and replace the NA's with the median.
+
+```{r}
+mydata$nkillter[which(is.na(mydata$nkillter))] <- 0
+mydata$nwoundus[which(is.na(mydata$nwoundus))] <- 0
+mydata$nwoundte[which(is.na(mydata$nwoundte))] <- 0
+mydata$claimed[which(is.na(mydata$claimed))] <- FALSE
+mydata$nperps <- NULL
+mydata$nperpcap <- NULL
+mydata$INT_IDEO <- NULL
+mydata$INT_MISC <- NULL
+mydata$propvalue <- NULL
+mydata$claimmode_txt <- NULL
+```
+
+
+```{r}
+write.csv(mydata, file = "../datasets/longitudeFixed.csv")
+```

@@ -30,11 +30,14 @@ for index, row in data.iterrows():
     popup = '<p>' + str(time) + '</p>'
     coordinates = [longitude, latitude]
     
-    points.append({
-            'time': time,
-            'popup': popup,
-            'coordinates': coordinates
-        })
+    if str(time) != 'nan':
+        points.append({
+                'time': time,
+                'popup': popup,
+                'coordinates': coordinates
+            })
+    
+#print(points)
 
 features = [
     {

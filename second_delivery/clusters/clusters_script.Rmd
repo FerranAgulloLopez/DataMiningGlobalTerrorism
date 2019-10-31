@@ -6,7 +6,7 @@ output:
     df_print: paged
   pdf_document: default
   word_document: default
-title: "Bivariate statistical analysis of relevant variables"
+title: "Clustering and hierarchical clustering"
 header-includes:
 - \usepackage{lscape}
 - \newcommand{\blandscape}{\begin{landscape}}
@@ -23,11 +23,13 @@ if(!require("cluster"))install.packages("cluster"); require("cluster")
 
 # First steps 
 
-We first load the dataset and make a subset of the numerical variables.
+First of all, we load the dataset.
 
 ```{r}
 mydata = read.csv("../datasets/longitudeFixed.csv")
 ```
+
+These are the variables in the dataset.
 
 ```{r}
 names(mydata)
@@ -40,7 +42,8 @@ mydata$nwoundus[which(is.na(mydata$nwoundus))] <- 0
 mydata$nwoundte[which(is.na(mydata$nwoundte))] <- 0
 ```
 
-We make a subset of the numerical variables of the dataset to work with in the next sections.
+We create a subset of the numerical variables of the dataset to work with in the next sections.
+
 ```{r}
 mydatanumeric <- data.frame (mydata$nkill,mydata$nkillus,mydata$nkillter,mydata$nwound,mydata$nwoundus,mydata$nwoundte)
 ```
@@ -49,7 +52,7 @@ mydatanumeric <- data.frame (mydata$nkill,mydata$nkillus,mydata$nkillter,mydata$
 
 ## Kmeans
 
-We start using the Elbow method to find the appropriate number of clusters.
+We start using the Elbow method to find the appropriate number of clusters. We are going to use 4 clusters because adding another cluster doesn't give a much better modeling of the data, 4 clusters already explain the majority of the variance of our dataset.
 
 ```{r}
 VE <- c()
@@ -60,33 +63,29 @@ for(k in 1:10){
 plot(VE, type="b", pch=19, xlab="Number of clusters", ylab="WSS")
 ```
 
-We are gonna use 4 clusters because adding another cluster doesn't give much better modeling of the data, 4 clusters already explain the majority of the variance of our dataset.
+These are the sizes of the clusters and their centers. We see that the majority of the observations are bundled in the same massive cluster. We also can see that the cluster number 2 consists in a single outlier. This implies that we won't be able to extract a lot of information of these clusters.
 
-We first show the cluster sizes.
 ```{r}
 k1 <- kmeans(mydatanumeric,4)
 print(k1$size)
-```
-
-And then the cluster centers.
-```{r}
 print(k1$centers)
 ```
 
-We see that the majority of the observations are grouped in the same cluster. We also can see that the cluster number 2 is an outlier. This implies that we not can extract a lot of information of these clusters. We are gonna try again with the hierarchical clustering hoping to get better results.
+We are going to try again with the hierarchical clustering hoping to get better results.
 
 ## Hierarchical clustering
 
 ### Clusters partition
 
-We generate the cluster dendrogram from our numerical variables.
+We generate the cluster dendrogram only with our numerical variables.
+
 ```{r}
 d  <- dist(mydatanumeric)
 h1 <- hclust(d,method="ward.D")
 plot(h1)
 ```
 
-We can see an outlier very clearly so we proceed to delete it and redo the dendrogram.
+We can see an outlier very clearly (entry 1703) so we proceed to delete it and generate the dendrogram again.
 
 ```{r}
 mydatanumeric <- mydatanumeric[-c(1703),] 
@@ -96,7 +95,7 @@ h1 <- hclust(d,method="ward.D")
 plot(h1)
 ```
 
-We can see that the majority of observations (2209) are very similar and are inside the same cluster. The others are distributed in different clusters. We think that the best approach is to cut the dendogram in 4 clusters as seen before.
+We'll use the 4 cluster partition for the entries, as before. We can see that the majority of observations (2209 of them) are still inside the same cluster, but at the same time the distribution of the entries is slightly better.
 
 ```{r}
 nc = 4
@@ -104,29 +103,22 @@ c1 <- cutree(h1,nc)
 table(c1)
 ```
 
-We now are gonna visualize the main cararecticts of the different clusters. In the next table we can see the mean of each variable for each cluster.
+We are now going to visualize the main characteristics of the different clusters. In the next table we can see the mean of each variable for each cluster.
+
+We can clearly see that the first cluster groups all the observations with 0 values in they variables. The other three bundle attacks on three different levels of severity.
 
 ```{r}
 cdg <- aggregate(as.data.frame(mydatanumeric),list(c1),mean)
 cdg
 ```
-
-We can clearly see that the first cluster agroups all the observations with 0 values in they variables. The other three represent the different scales of bloody attacks.
-
-We are now plotting the differences of each cluster in the 6 different numerical variables.
-
 ```{r}
-par(mfrow=c(2,3))
-dev.new(width=5, height=4)
-plot(cdg$mydata.nkill,cdg$mydata.Group.1,main="Comparison of the mean of kills in the 4 different classes",xlab="Cluster number",ylab="Number of kills")
+plot(cdg$mydata.nkill,cdg$mydata.Group.1,main="Compaçrison of the mean of kills in the 4 different classes",xlab="Cluster number",ylab="Number of kills")
 plot(cdg$mydata.nkillus,cdg$mydata.Group.1,main="Comparison of the mean of us kills in the 4 different classes",xlab="Cluster number",ylab="Number of us kills")
 plot(cdg$mydata.nkillter,cdg$mydata.Group.1,main="Comparison of the mean of terrorist kills in the 4 different classes",xlab="Cluster number",ylab="Number of terrorist kills")
 plot(cdg$mydata.nwound,cdg$mydata.Group.1,main="Comparison of the mean of wound people in the 4 different classes",xlab="Cluster number",ylab="Number of wound people")
 plot(cdg$mydata.nwoundus,cdg$mydata.Group.1,main="Comparison of the mean of us wound people in the 4 different classes",xlab="Cluster number",ylab="Number of us wound people")
 plot(cdg$mydata.nwoundte,cdg$mydata.Group.1,main="Comparison of the mean of wound terrorists in the 4 different classes",xlab="Cluster number",ylab="Number of wound terrorists")
 ```
-
-As it can be seen the four clusters are the different scales of bloody attacks. The only exception is the number of wound terrorists.
 
 Let's now compare with the categorical and logical variables.
 
@@ -136,6 +128,8 @@ mydataclusters$cluster <- c1
 names(mydataclusters)
 ```
 
+Now we separate the data in four different data structures, depending on which cluster they belong to.
+
 ```{r}
 mydataclusters_1 <- subset(mydataclusters, cluster==1)
 mydataclusters_2 <- subset(mydataclusters, cluster==2)
@@ -143,10 +137,9 @@ mydataclusters_3 <- subset(mydataclusters, cluster==3)
 mydataclusters_4 <- subset(mydataclusters, cluster==4)
 ```
 
-```{r}
-par(mfrow=c(2,3))
-dev.new(width=30, height=7)
+Now we plot the distribution depending of the cluster of the values of the qualitative variables success, attacktype1_txt, targtype1_txt, claimmode_txt, weaptype1_txt and president_party.
 
+```{r}
 #success
 #summary(mydata$success)
 success_1_true <- length(which(mydataclusters_1$success == TRUE))/nrow(mydataclusters_1)
@@ -161,7 +154,7 @@ clusters_success <- matrix(c(success_1_true,success_1_false,success_2_true,succe
 colnames(clusters_success) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
 rownames(clusters_success) <- c("true","false")
 counts <- as.table(clusters_success)
-barplot(counts, main="Success variable",xlab="Cluster number",ylab="%", col=c("darkblue","red"),legend = rownames(counts))
+barplot(counts, main="Success of the attack",xlab="Cluster number",ylab="%", col=c("darkblue","red"),legend = rownames(counts))
 
 #attacktype1_txt
 #summary(mydata$attacktype1_txt)
@@ -174,7 +167,7 @@ clusters_attacktype <- matrix(as.vector(t(attacktype_clusters)),ncol=4,byrow=TRU
 colnames(clusters_attacktype) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
 rownames(clusters_attacktype) <- rownames(attacktype_clusters)
 counts <- as.table(clusters_attacktype)
-barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab="%",legend = rownames(counts))
+barplot(counts, main="Type of the attack",xlab="Cluster number",ylab="%", col=rainbow(length(levels(mydataclusters_1$attacktype1_txt))),legend = rownames(counts))
 
 #targtype1_txt
 #summary(mydata$targtype1_txt)
@@ -191,7 +184,7 @@ barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab=
       x=ncol(counts) + 3,
       y=max(colSums(counts)),
       bty = "n"
-    ))
+    ), col=rainbow(length(levels(mydataclusters_1$targtype1_txt))))
 
 #claimmode_txt (full of NA's)
 #summary(mydata$claimmode_txt)
@@ -204,7 +197,7 @@ clusters_claimmode <- matrix(as.vector(t(claimmode_clusters)),ncol=4,byrow=TRUE)
 colnames(clusters_claimmode) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
 rownames(clusters_claimmode) <- rownames(claimmode_clusters)
 counts <- as.table(clusters_claimmode)
-barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab="%",legend = rownames(counts))
+barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab="%", col=rainbow(length(levels(mydataclusters_1$claimmode_txt))), legend = rownames(counts))
 
 #weaptype1_txt
 #summary(mydata$weaptype1_txt)
@@ -217,7 +210,7 @@ clusters_weaptype <- matrix(as.vector(t(weaptype_clusters)),ncol=4,byrow=TRUE)
 colnames(clusters_weaptype) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
 rownames(clusters_weaptype) <- rownames(weaptype_clusters)
 counts <- as.table(clusters_weaptype)
-barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab="%",legend = rownames(counts))
+barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab="%", col=rainbow(length(levels(mydataclusters_1$weaptype1_txt))), legend = rownames(counts))
 
 #president_party
 #summary(mydata$president_party)
@@ -230,7 +223,7 @@ clusters_president_party <- matrix(as.vector(t(president_party_clusters)),ncol=4
 colnames(clusters_president_party) <- c("1rst cluster","2nd cluster","3rd cluster","4th cluster")
 rownames(clusters_president_party) <- rownames(president_party_clusters)
 counts <- as.table(clusters_president_party)
-barplot(counts, main="Attack type variable variable",xlab="Cluster number",ylab="%",legend = rownames(counts))
+barplot(counts, main="Attack type variable variable",xlab="Cluster number", col=c("blue", "red"), ylab="%",legend = rownames(counts))
 ```
 
 FALTA ->
@@ -239,7 +232,9 @@ FALTA ->
 
 ### Partition quality
 
-Now we are gonna see the quality of our previous partition. Specifically we are gonna measure the quality via the separation, the between cluster sum of squares. 
+Now we are gonna see the quality of our previous partition. Specifically we are gonna measure the quality via the separation, the between cluster sum of squares.
+
+We can see that 4 clusters is the right selection of the number of clusters.
 
 ```{r}
 v <- c()
@@ -249,11 +244,11 @@ for(i in 1:10){
 }
 plot(v, type="b", pch=19, xlab="Number clusters", ylab="BSS")
 ```
-We can see that 4 clusters is the right selection of the number of clusters.
+
 
 ### Clusters partition with qualitive variables
 
-We are using Gower mixed distance to deal simoultaneously with numerical and qualitative data. In this way we can conclude more things of the previous partition of clusters.
+Now we will use Gower mixed distance to deal simoultaneously with numerical and qualitative data. This way our conclusions can be more extensive than with the previous partition. We will cut the dendrogram in 4 clusters, just as we did before. We can observe that the new clusters are more balanced than the previous separation.
 
 ```{r warning=FALSE}
 names(mydata)
@@ -262,23 +257,17 @@ dissimMatrix <- daisy(mydata[,actives], metric = "gower", stand=TRUE)
 distMatrix<-dissimMatrix^2
 h1 <- hclust(distMatrix,method="ward.D") 
 plot(h1)
-```
-
-We cut the dendrogram in 4 clusters.
-
-```{r}
 c2 <- cutree(h1,4)
 table(c2)
 ```
 
-We can see that the the observations are much better distributed than before being the cluster 2 the one more populated. 
+Now we show the numerical attributes of the centers of the clusters. As opposed to the previous distribution, now all the numerical values are almost equal. This implies that it is the qualitative variables that are mainly used to separate the data now.
 
 ```{r}
 cdg <- aggregate(as.data.frame(mydatanumeric[,1:6]),list(c2),mean)
 cdg
 ```
-
-With the previous mean table we can not clearly see the differences between the different clusters. Let's plot the cluster means with the qualitive variables.
+Now let's plot the cluster means with the qualitive variables.
 
 ```{r warning=FALSE}
 mydataclusters <- as.data.frame(mydata[,actives])

@@ -2,7 +2,6 @@
 University project. Data mining.
 
 - Final Report Draft.odt:
-
 File containing our final written report.
 
 - PCA:

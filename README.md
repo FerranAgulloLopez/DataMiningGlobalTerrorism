@@ -4,6 +4,13 @@ University project. Data mining.
 - Final Report Draft.odt:
 File containing our final written report.
 
+- Preprocessing:
+Contains the scripts related to the preprocessing of our dataset.
+  - BIUDS_raw_data.Rmd
+  - BUDS_preprocessed_data.Rmd
+  - BUDS_preprocessed_data.html
+  - Preprocessing.Rmd
+
 - PCA:
 Contains the scripts related to the Principal Component Analysis of the project.
   - PCA.R

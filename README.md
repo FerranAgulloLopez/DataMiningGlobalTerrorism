@@ -5,12 +5,12 @@ University project. Data mining.
 
 File containing our final written report.
 
--PCA:
+- PCA:
 Contains the scripts related to the Principal Component Analysis of the project.
   - PCA.R
   - PCA.Rmd
   
--bivariate_analysis:
+- bivariate_analysis:
   - SDA_Bivariate.Rmd
   - SDA_Bivariate.html
 

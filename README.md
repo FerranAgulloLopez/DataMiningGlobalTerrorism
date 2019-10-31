@@ -24,7 +24,7 @@ Contains the different versions of the dataset we've been using.
   - longitudeFixed.csv
 
 - map:
-Contains the python scripts used to generate the maps, and the maps itselves.
+Contains the python scripts used to generate the maps, and the maps themselves.
   - html_files: directory with the maps
       + map_points.html: map with all the incidents in our dataset, filterable by the ruling party
       + map_provs.html: map with all the incidents classified by the FIPS codes

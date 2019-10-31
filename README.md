@@ -1,7 +1,7 @@
 # MD_Global_Terrorism
 University project. Data mining.
 
-*Final Report Draft.odt:
+- Final Report Draft.odt:
 
 File containing our final written report.
 

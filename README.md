@@ -5,31 +5,26 @@ University project. Data mining.
 
 File containing our final written report.
 
-*PCA:
-
+-PCA:
 Contains the scripts related to the Principal Component Analysis of the project.
   - PCA.R
   - PCA.Rmd
   
-*bivariate_analysis:
-
+-bivariate_analysis:
   - SDA_Bivariate.Rmd
   - SDA_Bivariate.html
 
-*clusters:
-
+- clusters:
   - clusters_script.Rmd
   
-*datasets:
-
+- datasets:
 Contains the different versions of the dataset we've been using.
   - .Rhistory
   - fips-codes-added.csv
   - fips_codes_state.csv
   - longitudeFixed.csv
 
-*map:
-
+- map:
 Contains the python scripts used to generate the maps, and the maps itselves.
   - html_files: directory with the maps
       + map_points.html: map with all the incidents in our dataset, filterable by the ruling party

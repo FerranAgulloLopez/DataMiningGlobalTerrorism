@@ -6,23 +6,24 @@ File containing our final written report.
 
 - Preprocessing:
 Contains the scripts related to the preprocessing of our dataset.
-  - BIUDS_raw_data.Rmd
-  - BUDS_preprocessed_data.Rmd
-  - BUDS_preprocessed_data.html
-  - Preprocessing.Rmd
+  - BIUDS_raw_data.Rmd: markdown file with the basic statistical analysis and study of our dataset before preprocessing
+  - BUDS_preprocessed_data.Rmd: markdown file with the basic statistical analysis and study of our dataset after preprocessing
+  - Preprocessing.Rmd: markdown file with the explanation alongside the code of each step we've gone through during preprocessing
+
+- bivariate_analysis:
+  - SDA_Bivariate.Rmd: markdown file with the bivariate statistical analysis and study of our dataset after preprocessing
 
 - PCA:
 Contains the scripts related to the Principal Component Analysis of the project.
   - PCA.R
   - PCA.Rmd
-  
-- bivariate_analysis:
-  - SDA_Bivariate.Rmd
-  - SDA_Bivariate.html
 
 - clusters:
-  - clusters_script.Rmd
+  - clusters_script.Rmd: markdown file with the clustering and its analysis of our dataset
   
+- profiling:
+  - ??
+
 - datasets:
 Contains the different versions of the dataset we've been using.
   - .Rhistory

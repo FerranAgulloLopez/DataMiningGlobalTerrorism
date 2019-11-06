@@ -1,6 +1,5 @@
 ---
 pdf_document: default
-author: "Team 2 Group 11"
 output:
   html_document:
     df_print: paged
@@ -16,18 +15,18 @@ header-includes:
 ```{r include=FALSE}
 knitr::opts_chunk$set(comment = NA)
 ```
-
-Descriptive statistcs:
   
-```{r  warning=FALSE}
+```{r message = FALSE, warning=FALSE, include=FALSE}
 
 if(!require(moments))install.packages("moments"); require(moments)
+if(!require(plotly))install.packages("plotly"); require(plotly)
+
+library(moments)
+library(plotly)
 ```
 
-Loading dataset:
-
-```{r}
-mydata = read.csv("preprocessed_dataset.csv")
+```{r include=FALSE}
+mydata = read.csv("../../primera_entrega/datasets/preprocessed_dataset.csv")
 
 Mode <- function(x) {
   ux <- unique(x)
@@ -35,68 +34,84 @@ Mode <- function(x) {
 }
 ```
 
+In the same way as what we stated in “Description of the preprocessing made in each variable”, we have the explanations that correspond to this category alongside the code that can be found after.
 
+The structure of this file is similar to the previous ones: for each variable, we have a small section showing its results with a small analysis or observation of them. Not all variables have been modified, but since we deleted some rows, all of them are affected anyways, so we decided not to exclude any variable from this analysis, even if we’re only showing the small differences in their summary.
 
-#### 2.1. Variable provstate
-```{r}
-summary(mydata$provstate)
-f<-table(mydata$provstate)
-barplot(f)
-```
+#### Variable provstate
 
 As we can see in the barplot, California and New York are the most attacked states, much more than any other state.
 
-#### 2.2. Variable city
-```{r}
-summary(mydata$city)
-f<-table(mydata$city)
-barplot(f)
+```{r include=FALSE}
+summary(mydata$provstate)
+f<-table(mydata$provstate)
+f1=as.data.frame(f)
+```
+```{r echo = FALSE}
+plot_ly(f1, x = ~Var1, y = ~Freq, type = 'bar', color = I("grey"), width = 1000)%>%
+  layout(title = "Provstate barplot",
+         xaxis = list(title = "provstate name"),
+         yaxis = list(title = "number of attacks"))
 ```
 
-This is a barplot representing the amount of registered incidents per city. 449 of them occured in New York City, more than four times more than the second city with more incidents (San Juan, 107 registers).
+#### Variable city
 
-#### 2.3. Variable latitude
+In the following table, we can see the top 10 cities which have the biggest number of attacks recorded in the dataset. We can see that New York City has the most of all the cities by a huge margin, having more than four times the amount of incidents as San Juan, the city in second place. Moreover, taking into account the fact that the dataset records attacks of approximately the last 40 years, only the cities on the top of this table have a big amount of attacks and the rest of them only have occasional incidents: the number quickly goes down.
+
+```{r include=FALSE }
+summary(mydata$city)
+f<-table(mydata$city)
+f1=as.data.frame(f)
+f2 = f1[order(-f1$Freq),]
+f2 = subset(f2, f2$Freq > 22)
+colnames(f2) = c ("City name", "Number of attacks")
+```
+
+```{r echo = FALSE}
+print(f2)
+```
+
+
+#### Variable latitude
 Because of the purpose of latitude in this study, it's not really relevant to analyze and visualize it now.
 ```{r}
 summary(mydata$latitude)
 ```
 
-#### 2.4. Variable longitude
+#### Variable longitude
 Because of the purpose of longitude in this study, it's not really relevant to analyze and visualize it now.
 ```{r}
 summary(mydata$longitude)
 ```
 
-#### 2.5. Variable doubtterr
+#### Variable doubtterr
 Because of the meaning of this variable, it's not necessary to give an analysis of it.
 ```{r}
 summary(mydata$doubtterr)
 ```
 
-
-#### 2.6. Variable success
+#### Variable success
 ```{r}
 summary(mydata$success)
 ```
+
 As a logical variable we will represent it with a pie chart.
-```{r}
+
+```{r echo=FALSE}
 f<-table(mydata$success)
 f1=as.data.frame(f)
 
-slices <- f1[2]
-lbls1 <- f1[1]
-pct <- round(slices/sum(slices)*100)
-lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
-lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
-pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
-   main="Pie Chart of variable success")
+plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie') %>%
+  layout(title = 'Pie Chart of variable success',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 
 ```
 
-We can see that there are many more successful acts (82%) than unsuccessful ones (18%).
+We can see that there are many more successful acts (~82%) than unsuccessful ones (~18%).
 
-#### 2.7. Variable attacktype1_txt
-```{r}
+#### Variable attacktype1_txt
+```{r include=FALSE }
 summary(mydata$attacktype1_txt)
 ```
 
@@ -104,23 +119,20 @@ summary(mydata$attacktype1_txt)
 Mode(mydata$attacktype1_txt)
 ```
 The most common method of attack type is "Bombing/Explosion".
-```{r}
+```{r echo=FALSE }
 f<-table(mydata$attacktype1_txt)
 f1=as.data.frame(f)
-slices <- f1[2]
-lbls1 <- f1[1]
-pct <- round(slices/sum(slices)*100)
-lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
-lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
-pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
-   main="Pie Chart of variable attacktype1_txt")
+plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie') %>%
+  layout(title = 'Pie Chart of variable attacktype1_txt',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 
 ```
 
 The category which has most acts is "Bombing/Explosion" which has 49% of the acts, followed by "Facility/Infrastructure Attack" with 31%.
 
-#### 2.8. Variable targtype1_txt
-```{r}
+#### Variable targtype1_txt
+```{r include=FALSE }
 summary(mydata$targtype1_txt)
 ```
 
@@ -129,31 +141,42 @@ Mode(mydata$targtype1_txt)
 ```
 The most common target type is "Business".
 
-```{r}
+```{r echo=FALSE}
 f<-table(mydata$targtype1_txt)
-barplot(f)
+f1 = as.data.frame(f)
+plot_ly(f1, x = ~Var1, y = ~Freq, type = 'bar', color = I("grey"), width = 650)%>%
+  layout(title = "Targtype1_txt barplot",
+         xaxis = list(title = "targtype1_txt name"),
+         yaxis = list(title = "number of attacks"))
 ```
 
 The "Business" target type has 28% of the records.
 
 
-#### 2.9. Variable natlty1_txt
-```{r}
+#### Variable natlty1_txt
+```{r include=FALSE}
 summary(mydata$natlty1_txt)
+```
+```{r}
+Mode(mydata$natlty1_txt)
 ```
 Obviously the vast majority of the attacks are targeted towards the United States since that is the country we are studying.
 
-We will remove the value United States in order to make a proper comparison between the other values.
-```{r}
+We will remove the value United States and take the most significative ones in order to make a proper comparison between the other values.
+```{r echo=FALSE}
 f<-table(mydata$natlty1_txt)
 f<-f[-c(53)]
-barplot(f)
+f1 = as.data.frame(f)
+f2 = f1[order(-f1$Freq),]
+f2 = subset(f2, f2$Freq > 5)
+colnames(f2) = c ("Nationality of victim", "Number of attacks")
+print(f2)
 ```
 
 As we see in those plots there are some nationalities that receive more acts of terrorism than others. Those are the cases of "Puerto Rico" with 60, "Soviet Union" with 45 and "Cuba" with 20.
 
-#### 2.10. Variable gname
-```{r}
+#### Variable gname
+```{r include=FALSE}
 summary(mydata$gname)
 ```
 
@@ -163,16 +186,22 @@ Mode(mydata$gname)
 Most of the acts of terrorism were either claimed by individuals or an unknown group.
 ```{r}
 f<-table(mydata$gname)
-barplot(f)
+f1 = as.data.frame(f)
+f2 = f1[order(-f1$Freq),]
+f2 = subset(f2, f2$Freq > 20)
+colnames(f2) = c ("Group name", "Number of attacks")
+print(f2)
 ```
 
 As we can see in this barplot there are a lot of group names. The one with more associated acts is "Anti-Abortion extremists" with 196 followed by "Left-Wing Militants" with 169.
 
-#### 2.11. Variable nperps
+#### Variable nperps
 ```{r}
 summary(mydata$nperps)
 ```
+
 The minimun value is 1 because it makes no sense that no perpetrator has commited a crime. In preprocessing we corrected those values by changing them to NA. 
+
 ```{r}
 boxplot(mydata$nperps)
 ```
@@ -190,7 +219,7 @@ kurtosis(mydata$nperps,na.rm = TRUE)
 This value tells us that there is an extreme peak in the distribution where most of the values are clustered. The peak is number 1.
 
 
-#### 2.12. Variable nperpcap
+#### Variable nperpcap
 ```{r}
 summary(mydata$nperpcap)
 ```
@@ -216,46 +245,42 @@ kurtosis(mydata$nperpcap,na.rm = TRUE)
 This value tells us that there is a peak in the distribution where most of the values are clustered. The peak values are numbers 0 and 1.
 
 
-#### 2.13. Variable claimed
+#### Variable claimed
 ```{r}
 summary(mydata$claimed)
 ```
 
-```{r}
-f<-table(mydata$claimed)
-f1=as.data.frame(f)
-slices <- f1[2]
-lbls1 <- f1[1]
-pct <- round(slices/sum(slices)*100)
-lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
-lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
-pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
-   main="Pie Chart of variable claimed")
-```
-
 As we can see in this pie chart 70% of the acts were not claimed while 30% of them were.
 
-#### 2.14. Variable claimmode_txt
+```{r echo=FALSE}
+f<-table(mydata$claimed)
+f1=as.data.frame(f)
+plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie') %>%
+  layout(title = 'Pie Chart of variable claimed',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+```
+
+#### Variable claimmode_txt
 ```{r}
 summary(mydata$claimmode_txt)
 ```
 
-```{r}
-f<-table(mydata$claimmode_txt)
-f1=as.data.frame(f)
-slices <- f1[2]
-lbls1 <- f1[1]
-pct <- round(slices/sum(slices)*100)
-lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
-lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
-pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
-   main="Pie Chart of variable claimmode_txt")
-```
-
 As we see in the pie chart there are multiple methods of claiming an act with different occurance rates.
 
+```{r echo=FALSE}
+f<-table(mydata$claimmode_txt)
+f1=as.data.frame(f)
+plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie', width = 700, height = 700) %>%
+  layout(title = 'Pie Chart of variable claimmode_txt',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+```
 
-#### 2.15. Variable weaptype1_txt
+
+
+
+#### Variable weaptype1_txt
 ```{r}
 summary(mydata$weaptype1_txt)
 ```
@@ -263,19 +288,17 @@ summary(mydata$weaptype1_txt)
 ```{r}
 f<-table(mydata$weaptype1_txt)
 f1=as.data.frame(f)
-slices <- f1[2]
-lbls1 <- f1[1]
-pct <- round(slices/sum(slices)*100)
-lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
-lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
-pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
-   main="Pie Chart of variable weaptype1_txt")
+plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie', height = 750) %>%
+  layout(title = 'Pie Chart of variable weaptype1_txt',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
 ```
 
 As we see in those plots, there is a big favourite weapon type used during the recorded acts of terrorism which is "Explosives" with 50%, followed by "Incendiary" with 31%.
 
 
-#### 2.16. Variable nkill
+#### Variable nkill
 ```{r}
 summary(mydata$nkill)
 ```
@@ -302,7 +325,7 @@ This value tells us that there is an extreme peak in the distribution where most
 
 
 
-#### 2.17. Variable nkillus
+#### Variable nkillus
 ```{r}
 summary(mydata$nkillus)
 ```
@@ -323,7 +346,7 @@ kurtosis(mydata$nperpcap,na.rm = TRUE)
 This value tells us that there is an extreme peak in the distribution where most of the values are clustered. This peak is 0 as we have seen before.
 
 
-#### 2.18. Variable nkillter
+#### Variable nkillter
 ```{r}
 summary(mydata$nkillter)
 ```
@@ -344,7 +367,7 @@ kurtosis(mydata$nkillter,na.rm = TRUE)
 This positive value shows us that most values are clustered around a peak which is number 0 as we noticed before.
 
 
-#### 2.19. Variable nwound
+#### Variable nwound
 ```{r}
 summary(mydata$nwound)
 ```
@@ -365,7 +388,7 @@ kurtosis(mydata$nperpcap,na.rm = TRUE)
 This value tells us that there is an extreme peak in the distribution where most of the values are clustered. This peak is 0 as we have seen before.
 
 
-#### 2.20. Variable nwoundus
+#### Variable nwoundus
 ```{r}
 summary(mydata$nwoundus)
 ```
@@ -386,7 +409,7 @@ kurtosis(mydata$nperpcap,na.rm = TRUE)
 This positive value shows us that the values are clustered around a peak which is 0 in this case.
 
 
-#### 2.21. Variable nwoundte
+#### Variable nwoundte
 ```{r}
 summary(mydata$nwoundte)
 ```
@@ -407,12 +430,12 @@ kurtosis(mydata$nwoundte,na.rm = TRUE)
 This positive value shows us that there is an extreme peak where all values are clustered around.
 
 
-#### 2.22. Variable propvalue
+#### Variable propvalue
 ```{r}
 summary(as.numeric(mydata$propvalue))
 ```
 
-```{r}
+```{r warning=FALSE}
 mydata.propvaluelog <- sapply(as.vector(mydata$propvalue), function(x) log10(x))
 boxplot(mydata$propvalue, main = "Boxplot of variable propvalue")
 boxplot(mydata.propvaluelog, main = "Boxplot of variable propvalue", ylab = "log10(propvalue)")
@@ -429,99 +452,77 @@ kurtosis(mydata$propvalue[!is.na(mydata$propvalue)])
 This value shows us there is a big peak distribution which we know happens in the values close to 0.
 
 
-#### 2.23. Variable INT_IDEO
+#### Variable INT_IDEO
 ```{r}
 summary(mydata$INT_IDEO)
-```
-```{r}
-f<-table(mydata$INT_IDEO)
-# Pie
-f1=as.data.frame(f)
-
-slices <- f1[2]
-lbls1 <- f1[1]
-pct <- round(slices/sum(slices)*100)
-lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
-lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
-pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
-   main="Pie Chart of variable INT_IDEO")
 ```
 
 This pie chart indicates the proportion of ideologically international registered incidents out of the total. Only one third of them, 33%, was considered international by this criteria.
 
-#### 2.24. Variable INT_MISC
-```{r}
-summary(mydata$INT_MISC)
-```
-```{r}
-f<-table(mydata$INT_MISC)
+```{r echo=FALSE}
+f<-table(mydata$INT_IDEO)
 # Pie
 f1=as.data.frame(f)
+plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie') %>%
+  layout(title = 'Pie Chart of variable INT_IDEO',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+```
 
-slices <- f1[2]
-lbls1 <- f1[1]
-pct <- round(slices/sum(slices)*100)
-lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
-lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
-pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
-   main="Pie Chart of variable INT_MISC")
+#### Variable INT_MISC
+```{r}
+summary(mydata$INT_MISC)
 ```
 
 This pie chart indicates that only 12% of the registered incidents were international.
 
-#### 2.25. Variable president_party
+```{r echo=FALSE}
+f<-table(mydata$INT_MISC)
+# Pie
+f1=as.data.frame(f)
+plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie') %>%
+  layout(title = 'Pie Chart of variable INT_MISC',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+```
+
+#### Variable president_party
 ```{r}
 summary(mydata$president_party)
 ```
 
-```{r}
+This is the distribution of the number of acts of terrorism and which was the president party at the time of the incident. We can see that the majority of the incidents (69%) happened under a Republican president.
+
+```{r echo=FALSE}
 f<-table(mydata$president_party)
 # Pie
 f1=as.data.frame(f)
-
-slices <- f1[2]
-lbls1 <- f1[1]
-pct <- round(slices/sum(slices)*100)
-lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
-lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
-pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
-   main="Pie Chart of variable president_party")
+plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie') %>%
+  layout(title = 'Pie Chart of variable president_party',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 ```
 
-This is the distribution of the number of acts of terrorism and which was the president party at the time of the incident. We can see that the majority of the incidents (69%) happened under a Republican president.
 
-#### 2.26. Variable state_governor_party
+#### Variable state_governor_party
 ```{r}
 summary(mydata$state_governor_party)
 ```
 
-```{r}
+This is the distribution of the number of acts of terrorism and which was the state governor party at the time of the incident. Under the Democrat and Republican parties, the two main ones in the country, there were a similar amount of incidents (40% and 38% respectively).
+
+```{r echo=FALSE}
 f<-table(mydata$state_governor_party)
 # Pie
 f1=as.data.frame(f)
-
-slices <- f1[2]
-lbls1 <- f1[1]
-pct <- round(slices/sum(slices)*100)
-lbls1 <- paste(lbls1[,"Var1"], pct[,"Freq"])
-lbls1 <- paste(lbls1,"%",sep="") # ad % to labels
-pie(slices[,"Freq"],labels = lbls1, col=rainbow(length(lbls1)),
-   main="Pie Chart of variable state_governor_party")
+plot_ly(f1, labels = ~Var1, values = ~Freq, type = 'pie', width = 700) %>%
+  layout(title = 'Pie Chart of variable state_governor_party',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 ```
 
-This is the distribution of the number of acts of terrorism and which was the state governor party at the time of the incident. Under the Democrat and Republican parties, the two main ones in the country, there were a similar amount of incidents (40% and 38% respectively).
+#### Variable date
 
-#### 2.27. Variable date
-```{r}
-summary(mydata$date)
-```
-
-```{r}
-f<-table(mydata$date)
-View(f)
-barplot(f)
-```
-
-It can be seen that the amount of attacks has decreased with time.
+We will not statistically analyse this variable because it makes no sense to check for any distributions or deduce conclusions with the data of the attacks since it is not a continuos variable.
 
 

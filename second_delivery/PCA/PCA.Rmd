@@ -1,0 +1,536 @@
+---
+pdf_document: default
+author: "Team 2 Group 11"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+title: "Principal Component Analysis"
+header-includes:
+- \usepackage{lscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+---
+
+Loading the dataset:
+
+```{r}
+dd <- read.csv("fips-codes-added.csv")
+```
+
+In order to perform PCA over the data, it must not contain any NA, so we replace every one of them with the value of the median of the variable it is part of (which happens to be 0 in all cases).
+
+```{r}
+dd$nkillter[which(is.na(dd$nkillter))] <- 0
+dd$nwoundus[which(is.na(dd$nwoundus))] <- 0
+dd$nwoundte[which(is.na(dd$nwoundte))] <- 0
+```
+
+Now we isolate the numerical variables, as they are the only ones that PCA can be performed with.
+
+```{r}
+dcon <- data.frame (dd$nkill,dd$nkillus,dd$nkillter,dd$nwound,dd$nwoundus,dd$nwoundte)
+```
+
+First of all, we perform the PCA with the "prcomp" function, and print its basic information (class and attributes).
+
+```{r}
+pc1 <- prcomp(dcon, scale=TRUE)
+class(pc1)
+attributes(pc1)
+```
+
+Now we print the coefficients for each of the variables, and try to give names to the main ones.
+
+```{r}
+print(pc1)
+```
+
+We also show the standard deviations of the new variables, their inertia and the percentage of variance each of then explain.
+
+```{r}
+"Standard deviation"
+pc1$sdev
+"Inertias"
+inerProj<- pc1$sdev^2 
+inerProj
+"Total inertia"
+totalIner<- sum(inerProj)
+totalIner
+"Percentage of inertia explained"
+pinerEix<- 100*inerProj/totalIner
+pinerEix
+barplot(pinerEix, main="Percentage of inertia per variable", xlab="Percentage of inertia", ylab="Variable")
+```
+
+Wanting to keep around 80%-90% of the total inertia, we keep the three main variables, which we'll try to name now.
+
+The first one is mainly related to the number of casualties of the incident, more than the number of injured. One could think it's refering to how much of a bloodbath it was, so that is how we've named it: the "bloodbath-ness" of the incident.
+
+The second component is strongly related to the amount of wounded people at the incident, but only those that were not terrorists. We've thought that it could be pointing at how many relevant people (so terrorists don't matter) were saved, so that is its name: the "saved-ness" of the incident.
+
+The third almost entirely relates to the amount of wounded terrorists, but the lower the value, the more wounded terrorists the attack had. So, it can be called just that, "wounded terrorists", one only has to remember to interpret it the right way.
+
+As we were saying before, we keep the three first variables as they already explain more than the 90% of the total inertia. The next graph shows the cummulated inertia along with a dashed line representing 90%.
+
+```{r}
+barplot(100*cumsum(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2], main="Cummulated inertia", xlab="Percentage of inertia", ylab="Variable")
+lines(c(-1,8), c(90,90), lwd=0.5, lty="dashed")
+percInerAccum<-100*cumsum(pc1$sdev[1:dim(dcon)[2]]^2)/dim(dcon)[2]
+"Cummulated inertia"
+percInerAccum
+```
+
+We proceed to select the corresponding variables now.
+
+```{r}
+nd = 3
+Psi = pc1$x[,1:nd]
+iden = row.names(dcon)
+etiq = names(dcon)
+ze = rep(0,length(etiq)) # WE WILL NEED THIS VECTOR AFTERWARDS FOR THE GRAPHS
+```
+
+Now we plot the data on the three axis, pairwise, and analyze it.
+
+```{r}
+eje1<-1
+eje2<-2
+eje3<-3
+```
+
+We start with "bloodbath-ness" against "saved-ness". We include a global plot with all the data and another one centered in the main data cluster (avoiding the outliers).
+
+We can see one big group of attacks that follows an almost horizontal line, ranging from almost no "bloodbath-ness" to a notorious amount, and another group that has consistently more "saved-ness" than "bloodnath-ness", meaning that they weren't very lethal.
+
+```{r}
+plot(Psi[,eje1],Psi[,eje2], main="Bloodbath-ness vs Saved-ness", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="red")
+axis(side=3, pos= 0, labels = F, col="red")
+axis(side=2, pos= 0, labels = F, col="red")
+axis(side=4, pos= 0, labels = F, col="red")
+
+plot(Psi[,eje1],Psi[,eje2], xlim=c(-1,7), ylim=c(-3,9), main="Bloodbath-ness vs Saved-ness", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="red")
+axis(side=3, pos= 0, labels = F, col="red")
+axis(side=2, pos= 0, labels = F, col="red")
+axis(side=4, pos= 0, labels = F, col="red")
+```
+
+Now, we plot "bloodbath-ness" against "wounded terrorists".
+
+There's two clearly separated lines of attacks, one that starts with no wounded terrorists and another that starts at one. It's curious to observe that the second one starts approximately at the value at which the first line ends. From that and the "outliers" from the second graph, we can extract that the more deadly an attack is, the more likely it is that one or more perpetrators end up injured. The exception are a group of attacks that have several wounded terrorists, but have very low "bloodbath-ness". These are probably failed attacks.
+
+```{r}
+plot(Psi[,eje1],Psi[,eje3], main="Bloodbath-ness vs Wounded terrorists", xlab="Bloodbath-ness", ylab="Wounded terrorists")
+axis(side=1, pos= 0, labels = F, col="red")
+axis(side=3, pos= 0, labels = F, col="red")
+axis(side=2, pos= 0, labels = F, col="red")
+axis(side=4, pos= 0, labels = F, col="red")
+
+plot(Psi[,eje1],Psi[,eje3], xlim=c(-1,7), ylim=c(-6,2), main="Bloodbath-ness vs Wounded terrorists", xlab="Bloodbath-ness", ylab="Wounded terrorists")
+axis(side=1, pos= 0, labels = F, col="red")
+axis(side=3, pos= 0, labels = F, col="red")
+axis(side=2, pos= 0, labels = F, col="red")
+axis(side=4, pos= 0, labels = F, col="red")
+```
+
+We end with "saved-ness" against wounded terrorists.
+
+We see that there's a big cluster around (0,0), indicating there were neither wounded terrorists nor injured victims in a big amount of attacks. There's also a cluster of attacks with wounded terrorists and negative "saved-ness", indicating a bigger amount of fatal casualties than injured people. Lastly, there's also a group of attacks with no woudned terrorists and a varying degree of "saved-ness"; these might be clean attacks, with no casualties.
+
+```{r}
+plot(Psi[,eje2],Psi[,eje3], main="Saved-ness vs Wounded terrorists", xlab="Saved-ness", ylab="Wounded terrorists")
+axis(side=1, pos= 0, labels = F, col="red")
+axis(side=3, pos= 0, labels = F, col="red")
+axis(side=2, pos= 0, labels = F, col="red")
+axis(side=4, pos= 0, labels = F, col="red")
+
+plot(Psi[,eje2],Psi[,eje3], xlim=c(-3,9), ylim=c(-6,2), main="Saved-ness vs Wounded terrorists", xlab="Saved-ness", ylab="Wounded terrorists")
+axis(side=1, pos= 0, labels = F, col="red")
+axis(side=3, pos= 0, labels = F, col="red")
+axis(side=2, pos= 0, labels = F, col="red")
+axis(side=4, pos= 0, labels = F, col="red")
+```
+
+Now, we show a 3D plot of the previous variables.
+
+```{r}
+if(!require(rgl))install.packages("rgl"); require(rgl)
+library(rgl)
+plot3d(Psi[,1],Psi[,2],Psi[,3])
+plot3d(Psi[,1],Psi[,2],Psi[,3], xlim=c(-1,7), ylim=c(-3,9), zlim=c(-6,2), xlab="Bloodbath-ness", ylab="Saved-ness", zlab="Wounded terrorists")
+```
+
+Now we project the six original variables over the first two variables, "bloodbath-ness" and "saved-ness". The result is immediately obvious: the three variables related to fatal casualties are intimately related to the "bloodbath-ness", while "nwoundus" and "nwound" are the ones that define "saved-ness" (and contribute to a smaller degree to the "bloodbath-ness" too).
+
+```{r}
+Phi = cor(dcon,Psi)
+X<-Phi[,eje1]
+Y<-Phi[,eje2]
+Z<-Phi[,eje3]
+plot(Psi[,eje1],Psi[,eje2],type="n",xlim=c(min(X,0),max(X,0)),ylim=c(min(Y,0),max(Y,0)), main="Projection of the original variables", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F)
+axis(side=3, pos= 0, labels = F)
+axis(side=2, pos= 0, labels = F)
+axis(side=4, pos= 0, labels = F)
+arrows(ze, ze, X, Y, length = 0.07,col="red")
+text(X,Y,labels=etiq,col="blue", cex=0.7)
+```
+
+Now we present a graph plotting every categorical variable centroid at the same time over the two main variables of the PCA. While there are some outilers, the vast majority of them are centered around (0,0), so we've included another one zoomed in this area.
+
+```{r}
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim=c(-2,50), ylim=c(-20,10), main="Categorical variable centroids", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="gray")
+axis(side=3, pos= 0, labels = F, col="gray")
+axis(side=2, pos= 0, labels = F, col="gray")
+axis(side=4, pos= 0, labels = F, col="gray")
+
+#nominal qualitative variables
+
+dcat<-c(10,11,12,17,18,19,29,30)
+#divide categoricals in several graphs if joint representation saturates
+
+#build a palette with as much colors as qualitative variables 
+colors<-rainbow(length(dcat))
+
+c<-1
+for(k in dcat){
+  seguentColor<-colors[c]
+  fdic1 = tapply(Psi[,eje1],dd[,k],mean)
+  fdic2 = tapply(Psi[,eje2],dd[,k],mean) 
+  
+  points(fdic1,fdic2,pch=16,col=seguentColor)
+  #text(fdic1,fdic2,labels=levels(dd[,k]),col=seguentColor, cex=0.6)
+  c<-c+1
+}
+legend("topright",names(dd)[dcat],pch=16,col=colors, cex=0.6)
+
+plot(Psi[,eje1],Psi[,eje2],type="n", xlim=c(-2,3), ylim=c(-2,4), main="Categorical variable centroids", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="gray")
+axis(side=3, pos= 0, labels = F, col="gray")
+axis(side=2, pos= 0, labels = F, col="gray")
+axis(side=4, pos= 0, labels = F, col="gray")
+
+#nominal qualitative variables
+
+dcat<-c(10,11,12,17,18,19,29,30)
+#divide categoricals in several graphs if joint representation saturates
+
+#build a palette with as much colors as qualitative variables 
+colors<-rainbow(length(dcat))
+
+c<-1
+for(k in dcat){
+  seguentColor<-colors[c]
+  fdic1 = tapply(Psi[,eje1],dd[,k],mean)
+  fdic2 = tapply(Psi[,eje2],dd[,k],mean) 
+  
+  points(fdic1,fdic2,pch=16,col=seguentColor)
+  #text(fdic1,fdic2,labels=levels(dd[,k]),col=seguentColor, cex=0.6)
+  c<-c+1
+}
+legend("topright",names(dd)[dcat],pch=16,col=colors, cex=0.6)
+```
+
+Now, we'll try to analyze and explain the previously observed outliers by plotting the categorical variables that they belong to over the same two variables from before.
+
+We start with the type of the attack, where two kinds of attacks stand out: unarmed assaults and hijackings. The former present an unusual amount of only injured victims, from where we can deduce that these attacks are not that deadly compared to the rest. The latter, instead, present on average a very high amount of fatal casualties (the negative "saved-ness" can be explained by it too), being by far the most lethal method of terrorism.
+
+```{r}
+plot(Psi[,eje1],Psi[,eje2],type="n",xlim=c(-1,7), ylim=c(-3,2), main="attacktype1 centroids", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="gray")
+axis(side=3, pos= 0, labels = F, col="gray")
+axis(side=2, pos= 0, labels = F, col="grey")
+axis(side=4, pos= 0, labels = F, col="grey")
+
+k<-11#weaptype
+varcat<-dd[,k]
+fdic1 = tapply(Psi[,eje1],varcat,mean)
+fdic2 = tapply(Psi[,eje2],varcat,mean) 
+
+points(fdic1,fdic2,pch=16,col="blue")
+text(fdic1,fdic2,labels=levels(varcat),col="blue", cex=0.7)
+```
+
+We continue with "claimmode", the used method to claim an attack. The only relevant mode is video, the attacks of which have an insane amount of "bloodbath-ness" and negative "saved-ness". The explanation is found looking at the two only attacks that were claimed by video in our dataset: they're actually two of the 9/11 attacks. The first one is the hijacking that crashed into the Pentagon (190 killed), and the second one is the register of a hijacked plane that ended crashing in the open in Shanksville, Pennsylvania (44 killed). The 9/11 attacks (including these two) were claimed by Al-Qaida in video form in 2004.
+
+```{r}
+plot(Psi[,eje1],Psi[,eje2],type="n",xlim=c(-1,50), ylim=c(-20,5), main="claimmode centroids", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="gray")
+axis(side=3, pos= 0, labels = F, col="gray")
+axis(side=2, pos= 0, labels = F, col="grey")
+axis(side=4, pos= 0, labels = F, col="grey")
+
+k<-18#weaptype
+varcat<-dd[,k]
+fdic1 = tapply(Psi[,eje1],varcat,mean)
+fdic2 = tapply(Psi[,eje2],varcat,mean) 
+
+points(fdic1,fdic2,pch=16,col="blue")
+text(fdic1,fdic2,labels=levels(varcat),col="blue", cex=0.7)
+
+dd[dd$claimmode_txt=="Video",]
+```
+
+We end with the type of the weapon used in the attack. Just as before, only two types of weapon stand out: biological weapons and vehicles. The former stand out, like unarmed assaults, for the large amount of people they can injure (while the amount of fatal casualties is a lot smaller). In this case, the amount of injured is on average even bigger than with unarmed assaults, proving more effective in affecting people (but not killing them). Vehicles, just like hijackings, are extremely lethal. These, when used, though, result on average in an even higher casualty rate than hijackings in general.
+
+```{r}
+plot(Psi[,eje1],Psi[,eje2],type="n",xlim=c(-1,13), ylim=c(-5,5), main="weaptype centroids", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="gray")
+axis(side=3, pos= 0, labels = F, col="gray")
+axis(side=2, pos= 0, labels = F, col="grey")
+axis(side=4, pos= 0, labels = F, col="grey")
+
+k<-19#weaptype
+varcat<-dd[,k]
+fdic1 = tapply(Psi[,eje1],varcat,mean)
+fdic2 = tapply(Psi[,eje2],varcat,mean) 
+
+points(fdic1,fdic2,pch=16,col="blue")
+text(fdic1,fdic2,labels=levels(varcat),col="blue", cex=0.7)
+```
+
+We'll end this analysis by plotting all the categorical variables over the two PCA variables that can provide the best explanation of the categories, if at all.
+
+We start with the "doubterr" variable, that represents if there was any doubt about whether an attack was in fact terrorism or not. The biggest, deadliest attacks are all confirmed terrorist attacks, but we can see a group of incidents (some of them even happening to be quite bloody) that spawn some doubt. The deadliest two of these are a bombing and a kidnapping, and it's reasonable to have doubts about them because it's easier to pass them off as an accident or an incident without an ulterior motive, respectively. 
+
+```{r}
+varcat=dd[,9]
+plot(Psi[,1],Psi[,2],col=varcat, pch=16, main="Doubt about being terrorism", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=c(1,2,3), cex=0.6)
+
+varcat=dd[,9]
+plot(Psi[,1],Psi[,2],col=varcat, xlim=c(-1,20), ylim=c(-3,15), pch=16, main="Doubt about being terrorism", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=c(1,2,3), cex=0.6)
+```
+
+Regarding the success of the attack, the vast majority of them are considered successes. It's noticeable that there are two failures on the Y axis, representing two attacks with a great amount of injured terrorists while few to none injured civilians. It makes sense to call them failures when terrorists are almost the only ones affected by the attacks. The rest of failures are scattered around the origin of coordinates (even if some of the failures have actual casualties), meaning they were smaller attacks. The attacks with a big value for "saved-ness" are all still considered successes even if they weren't lethal, likely because they still affected a great amount of people.
+
+```{r}
+varcat=dd[,10]
+plot(Psi[,2],Psi[,3],col=varcat, pch=16, main="Success of the attack", xlab="Saved-ness", ylab="Wounded terrorists")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=c(1,2), cex=0.6)
+
+varcat=dd[,10]
+plot(Psi[,2],Psi[,3],col=varcat, xlim=c(-3,13), ylim=c(-6,5), pch=16, main="Success of the attack", xlab="Saved-ness", ylab="Wounded terrorists")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=c(1,2), cex=0.6)
+```
+
+On the type of the attack, we notice some clear outliers.
+
+There are two hijackings corresponding, more than likely, to the two 9/11 attacks previously mentioned.
+
+There's also an unarmed assault that affected a vast amount of civilians but wasn't as deadly. If we check the graph below showing the type of weapon used, we'll see that this attack was performed with a biological weapon. It's very likely that this attack corresponds to the 1984 Rajneeshee attack in The Dalles, Oregon: a biological attack carried out by the members of an indian movement for political reasons in which they poisoned 751 people with Salmonella by contaminating the food of then restaurants of the area.
+
+We can also see a clear tendency in armed assaults, ranging in the amount of fatal casualties, but all having in common the fact that they were very lethal, resulting in no injuries. On the other hand, bombings and explosions often leave a bigger amount of injured than killed people.
+
+```{r}
+varcat=dd[,11]
+plot(Psi[,1],Psi[,2],col=varcat, pch=16, main="Attack type", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=seq(1,8,1), cex=0.6)
+
+varcat=dd[,11]
+plot(Psi[,1],Psi[,2],col=varcat, xlim=c(-1,20), ylim=c(-3,15), pch=16, main="Attack type", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=seq(1,8,1), cex=0.6)
+```
+
+On the type of weapon of the attack, we clearly see that the armed attacks clearly correspond with the ones that used firearms. Also as we said before, that unarmed assault was carried out with a biological weapon (Salmonella) and the two hijackings correspond to attacks performed with vehicles (planes).
+
+```{r}
+varcat=dd[,19]
+plot(Psi[,1],Psi[,2],col=varcat, pch=16, main="Weapon type", xlab="Saved-ness", ylab="Wounded terrorists")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=seq(1,12,1), cex=0.6)
+
+varcat=dd[,19]
+plot(Psi[,1],Psi[,2],col=varcat, xlim=c(-1,20), ylim=c(-3,15), pch=16, main="Weapon type", xlab="Saved-ness", ylab="Wounded terrorists")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=seq(1,12,1), cex=0.6)
+```
+
+On the type of the target, there are too much different possibilities and there isn't any apparent pattern to extract any meaningful conclusions.
+
+```{r}
+varcat=dd[,12]
+plot(Psi[,1],Psi[,2],col=varcat, pch=16, main="Type of the target", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=seq(1,21,1), cex=0.6)
+
+varcat=dd[,12]
+plot(Psi[,1],Psi[,2],col=varcat, xlim=c(-1,20), ylim=c(-3,15), pch=16, main="Type of the target", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=seq(1,21,1), cex=0.6)
+```
+
+Regarding whether the attack was claimed or not, there's not a clear tendency for neither case. Regardless, the deadliest attacks were still all claimed.
+
+```{r}
+varcat=dd[,17]
+plot(Psi[,1],Psi[,2],col=varcat, pch=16, main="Claimed attack", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=seq(1,3,1), cex=0.6)
+
+varcat=dd[,17]
+plot(Psi[,1],Psi[,2],col=varcat, xlim=c(-1,20), ylim=c(-3,15), pch=16, main="Claimed attack", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=seq(1,3,1), cex=0.6)
+```
+
+On the type of claim, there exist to many NA's for this graph to be of any value.
+
+```{r}
+Psi
+varcat=dd[,18]
+plot(Psi[,1],Psi[,2],col=varcat, pch=16, main="Type of claim", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=seq(1,10,1), cex=0.6)
+
+varcat=dd[,18]
+plot(Psi[,1],Psi[,2],col=varcat, xlim=c(-1,20), ylim=c(-3,15), pch=16, main="Type of claim", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=seq(1,10,1), cex=0.6)
+```
+
+On the governing party at the time of the attack, it's noticeable that the deadliest attacks that the dataset registers (thus definitely being part of the deadliest attacks the US has suffered) all happened under the Republican party. Those very likely correspond to the 9/11 attacks, which happened under the George W. Bush administration.
+
+```{r}
+varcat=dd[,29]
+plot(Psi[,1],Psi[,2],col=varcat, pch=16, main="President party", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=c(1,2), cex=0.6)
+
+varcat=dd[,29]
+plot(Psi[,1],Psi[,2],col=varcat, xlim=c(-1,20), ylim=c(-3,15), pch=16, main="President party", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=c(1,2), cex=0.6)
+```
+
+On the governing party at the time of the attack, it's noticeable that the deadliest attacks that the dataset registers (thus definitely being part of the deadliest attacks the US has suffered) all happened under the Republican party. Those very likely correspond to the 9/11 attacks, which happened under the George W. Bush administration.
+
+```{r}
+varcat=dd[,30]
+plot(Psi[,1],Psi[,2],col=varcat, pch=16, main="Governing party in the state", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=seq(1,10,1), cex=0.6)
+
+varcat=dd[,30]
+plot(Psi[,1],Psi[,2],col=varcat, xlim=c(-1,20), ylim=c(-3,15), pch=16, main="President party", xlab="Bloodbath-ness", ylab="Saved-ness")
+axis(side=1, pos= 0, labels = F, col="darkgray")
+axis(side=3, pos= 0, labels = F, col="darkgray")
+axis(side=2, pos= 0, labels = F, col="darkgray")
+axis(side=4, pos= 0, labels = F, col="darkgray")
+legend("topright",levels(varcat),pch=16,col=seq(1,10,1), cex=0.6)
+```
+
+
+#determine zoom level
+#use the scale factor or not depending on the position of centroids
+# ES UN FACTOR D'ESCALA PER DIBUIXAR LES FLETXES MES VISIBLES EN EL GRAFIC
+#fm = round(max(abs(Psi[,1]))) 
+#fm=100
+
+#scale the projected variables
+#X<-fm*Psi[,eje1]
+#Y<-fm*Psi[,eje2]
+
+#represent numerical variables in background
+#plot(Psi[,eje1],Psi[,eje2],type="n",xlim=c(-1,1), ylim=c(-3,1))
+#plot(X,Y,type="none",xlim=c(min(X,0),max(X,0)))
+#axis(side=1, pos= 0, labels = F, col="cyan")
+#axis(side=3, pos= 0, labels = F, col="cyan")
+#axis(side=2, pos= 0, labels = F, col="cyan")
+#axis(side=4, pos= 0, labels = F, col="cyan")
+
+#add projections of numerical variables in background
+#arrows(ze, ze, X, Y, length = 0.07,col="lightgray")
+#text(X,Y,labels=etiq,col="gray", cex=0.7)
+
+#add centroids
+#c<-1
+#for(k in dcat){
+#  seguentColor<-colors[c]
+#  
+#  fdic1 = tapply(Psi[,eje1],dd[,k],mean)
+#  fdic2 = tapply(Psi[,eje2],dd[,k],mean) 
+#  
+#  points(fdic1,fdic2,pch=16,col=seguentColor, labels=levels(dd[,k]))
+#  #text(fdic1,fdic2,labels=levels(dd[,k]),col=seguentColor, cex=0.6)
+#  c<-c+1
+#}
+#legend("topright",names(dd)[dcat],pch=1,col=colors, cex=0.6)
+
+# PROJECTION OF ILLUSTRATIVE qualitative variables on individuals' map
+# PROJECCI? OF INDIVIDUALS DIFFERENTIATING THE Dictamen
+# (we need a numeric Dictamen to color)
+
+
+
+
+# category centroids
+
+
+# Overproject THE CDG OF  LEVELS OF varcat
+#fdic1 = tapply(Psi[,1],varcat,mean)
+#fdic2 = tapply(Psi[,2],varcat,mean) 
+
+#text(fdic1,fdic2,labels=levels(varcat),col="cyan", cex=0.75)

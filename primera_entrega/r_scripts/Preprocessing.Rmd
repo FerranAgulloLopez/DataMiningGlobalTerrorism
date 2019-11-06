@@ -1,12 +1,10 @@
 ---
 pdf_document: default
-author: "Team 2 Group 11"
 output:
+  word_document: default
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
-  word_document: default
-title: "Terrorism in the United States"
 header-includes:
 - \usepackage{lscape}
 - \newcommand{\blandscape}{\begin{landscape}}
@@ -17,55 +15,56 @@ header-includes:
 knitr::opts_chunk$set(comment = NA)
 ```
 
-## INDEX
- 1. Loading the dataset
- 2. Preprocess of each variable
- 3. Delete rows with lots of null values
- 4. Assigning the right type to each variable
- 5. Saving the preprocessed dataset
- 
-We assign the right type after the preprocess step because it may have unforeseen results. As an example, null values like -9 in binaries variables are converted to True values.
-
-### 1. Loading the dataset
-Firstly, we begin by loading the data from the csv file and changing the name of the first column, which shows the id of each row.
-```{r}
+```{r include=FALSE}
 mydata = read.csv("Terrorism_US_FIXED.csv")
 names(mydata)[names(mydata) == "X"] <- "id"
 colnames(mydata)
 ```
 
-### 2. Preprocess of each variable
-Now we start preprocessing the null values of each variable, as well as the incorrect ones and the outliers. We assign the type to the different variables at the end of the script because the incorrect values corrupt the data when assigning the right type.
+### Preprocess of each variable
 
+Now we start preprocessing the null values of each variable, as well as the incorrect ones and the outliers. We assign the type to the different variables at the end of the script because the incorrect values corrupt the data when assigning the right type. 
 
-#### 2.1. Variable provstate
-```{r}
+#### Variable provstate
+```{r include=F}
 summary(mydata$provstate)
 ```
+
 Thanks to the summary command, we discover that there are 4 rows with NaN values and 1 equal to Unknown, so we start by looking if we can fix them.
 First, we try to deal with the Nan values by making a subset with them and looking at it.
-```{r}
+
+```{r echo=F}
 rowNulls <- subset(mydata, provstate == '')
+rowNulls <- rowNulls[c('id','provstate','city','latitude','longitude')]
 rowNulls
 ```
+
 As expected, all rows have a null provstate value. However, the city variable isn't null: this means that we can easily find the state by looking at where these cities are located, using external information if needed, so we can complete the provstate variable with the corresponding values.
+
 ```{r}
-mydata$provstate[which(mydata$id == 768)] <- 'District of Columbia' # id -> 768, city -> Washington, state -> District of Columbia
-mydata$provstate[which(mydata$id == 2198)] <- 'New York' # id -> 2198, city -> New York City, state -> New York
-mydata$provstate[which(mydata$id == 2773)] <- 'Texas' # id -> 2773, city -> Hudson Bend, state -> Texas
-mydata$provstate[which(mydata$id == 2779)] <- 'New Hampshire' # id -> 2779, city -> Manchester, state -> New Hampshire
+mydata$provstate[which(mydata$id == 768)] <- 'District of Columbia' 
+mydata$provstate[which(mydata$id == 2198)] <- 'New York' 
+mydata$provstate[which(mydata$id == 2773)] <- 'Texas' 
+mydata$provstate[which(mydata$id == 2779)] <- 'New Hampshire' 
 ```
+
 Now we move onto the row with the Unknown value, and study what happened with it.
-```{r}
+
+```{r echo=F}
 rowNull <- subset(mydata, provstate == 'Unknown')
+rowNull <- rowNull[c('id','provstate','city','latitude','longitude')]
 rowNull
 ```
+
 This row has the city value as null, and also lacks its latitude and longitude, so we cannot figure out where this incident took place. Because of that, we decided that it wasn't worth to keep and chose to delete it.
+
 ```{r}
 mydata <- mydata[!mydata$provstate == 'Unknown', ]
 ```
+
 After this cleaning process, we shouldn't have any more problems with the provstate variable, so we can see the result of the preprocess of this variable and check that everything's alright.
-```{r}
+
+```{r echo=F}
 mydata$provstate <- as.character(mydata$provstate)
 mydata$provstate <- as.factor(mydata$provstate)
 summary(mydata$provstate)
@@ -74,108 +73,131 @@ summary(mydata$provstate)
 As we can see, all the problems have been correctly treated. Now we have to repeat this process for all the other remaining variables: since the steps are the same everytime, we won't thoroughly explain them again, and instead will highlight the important differences, like the reasoning and process we follow to handle the Nan and Unknown values.
 
 
-#### 2.2. Variable city
-```{r}
+#### Variable city
+```{r include=F}
 summary(mydata$city)
 ```
+
 We see that there are 14 rows without city. We make a subset to study them.
-```{r}
+
+```{r echo=F}
 rowNull <- subset(mydata, city == 'Unknown')
+rowNull <- rowNull[c('id','provstate','city','latitude','longitude')]
 rowNull
 ```
+
 These rows have the latitude and longitude variables not empty so we have decided to complete these values using external information as Google Maps, so we can complete the city variable with the corresponding values.
 
 First we put this variable as character for make possible change Unknown values.
+
 ```{r}
 mydata$city <- as.character(mydata$city)
 ```
-Now we can replace missing values of this variable.
-```{r}
-# 18.22083,-66.59015 -> Jayuya, Puerto Rico
-# 27.66483,-81.51575 -> Polk County, Florida
-# 43.00684,-75.04701 -> Ilion, New York
-# 41.20332,-77.19452 -> Level Corner, Pennsylvania
-# 43.80413,-120.55420 -> Brothers, Oregon
 
+Now we can replace missing values of this variable.
+
+```{r}
 mydata$city[which(mydata$provstate == 'Puerto Rico' & mydata$city == 'Unknown')] <- 'Jayuya'
 mydata$city[which(mydata$provstate == 'Florida' & mydata$city == 'Unknown')] <- 'Polk County'
 mydata$city[which(mydata$provstate == 'New York' & mydata$city == 'Unknown')] <- 'Ilion'
 mydata$city[which(mydata$provstate == 'Pennsylvania' & mydata$city == 'Unknown')] <- 'Level Corner'
 mydata$city[which(mydata$provstate == 'Oregon' & mydata$city == 'Unknown')] <- 'Brothers'
 ```
-We now can see the result of the preprocess of this variable.
-```{r}
+
+```{r include=F}
 mydata$city <- as.factor(mydata$city)
 summary(mydata$city)
 ```
 
-#### 2.3. Variable latitude
+#### Variable latitude
 ```{r}
 summary(mydata$latitude)
 ```
+
 We see that there are incorrect values, because it impossible that Max. is 40616.00
+
 ```{r}
-mydata[mydata[,"latitude"] > 100,]
+aux <- mydata[mydata[,"latitude"] > 100,]
+aux <- aux[c('id','provstate','city','latitude','longitude')]
+aux
 ```
+
 We think these are miss inputs, so we correct them thanks to the city variable.
+
 ```{r}
 mydata$latitude[mydata$latitude == 36312] <- 36.312
 mydata$latitude[mydata$latitude == 40616] <- 40.616
 mydata$latitude[mydata$latitude == 33494] <- 33.494
 ```
+
 We now can see the result of the preprocess of this variable that corresponds to the US coordinates (including Hawaii and Puerto Rico).
-```{r}
+
+```{r echo=F}
 summary(mydata$latitude)
 ```
 
-#### 2.4. Variable longitude
+#### Variable longitude
 ```{r}
 summary(mydata$longitude)
 ```
+
 We see that there are incorrect values, because it impossible that Min. is -66266.00
+
 ```{r}
-mydata[mydata[,"longitude"] < -200,]
+aux <- mydata[mydata[,"longitude"] < -200,]
+aux <- aux[c('id','provstate','city','latitude','longitude')]
+aux
 ```
+
 We think this is miss input, so we correct them thanks to the city variable.
+
 ```{r}
 mydata$longitude[mydata$longitude == -66266] <- -66.266
 ```
+
 We now can see the result of the preprocess of this variable that corresponds to the US coordinates (including Hawaii and Puerto Rico).
-```{r}
+
+```{r echo=F}
 summary(mydata$longitude)
 ```
 
-#### 2.5. Variable doubtterr
+#### Variable doubtterr
 ```{r}
 summary(mydata$doubtterr)
 ```
+
 As we can see there are null values with the value -9. So we change these values to Nan because we think that writing 0 or making another suposition has no sense in this case.
+
 ```{r}
 mydata$doubtterr[mydata$doubtterr == -9] <- NA
 ```
-We now can see the result of the preprocess of this variable.
-```{r}
+
+```{r include=F}
 summary(mydata$doubtterr)
 ```
 
-#### 2.6. Variable success
+#### Variable success
 ```{r}
 summary(mydata$success)
 ```
-There is nothing to change in this variable.
 
-#### 2.7. Variable attacktype1_txt
+There is nothing to change in this variable, because it has no null values and this is a binary variable, so max and min values are correct.
+
+#### Variable attacktype1_txt
 ```{r}
 summary(mydata$attacktype1_txt)
 ```
 
 We think that in this case makes sense to use KNN to predict the null values. However, in order to be able to use the KNN method and input the missing values, there has to exist a high correlation between attacktype1_txt and the numeric variables of the dataset, so first we filter out the non-numeric variables and then compute their correlation with attacktype1_txt. 
-```{r}
+
+```{r echo = T, results = 'hide'}
 mydata.numerics <- Filter(is.numeric, mydata)
 mydata.numerics$attacktype1_txt <- as.numeric(mydata$attacktype1_txt)
 cor(mydata.numerics)
 ```
-We can see that there is no correlation between them and attacktype1_txt, so we discard the possibility of using KNN. Instead, we replace the NAs with the mode of the variable.
+
+After analizing the results we can see that there is no correlation between them and attacktype1_txt, so we discard the possibility of using KNN. Instead, we replace the NAs with the mode of the variable.
+
 ```{r}
 Mode <- function(x) {
   ux <- unique(x)
@@ -185,34 +207,42 @@ Mode <- function(x) {
 moda_attack_type <- Mode(mydata$attacktype1_txt)
 mydata$attacktype1_txt[which(mydata$attacktype1_txt == '0' | mydata$attacktype1_txt == 'Unknown')] <- moda_attack_type
 ```
+
 Now we can observe the NA's have disappeared.
-```{r}
+
+```{r echo=F}
 mydata$attacktype1_txt <- as.character(mydata$attacktype1_txt)
 mydata$attacktype1_txt <- as.factor(mydata$attacktype1_txt)
 summary(mydata$attacktype1_txt)
 ```
 
-#### 2.8. Variable targtype1_txt
-```{r}
+#### Variable targtype1_txt
+```{r include=F}
 summary(mydata$targtype1_txt)
 ```
-There are 9 empty values and 11 unknown values. We substitute them for the attribute mode.
+
+There are 9 empty values and 11 unknown values, so we substitute them for the attribute mode.
+
 ```{r}
 moda_target_type <- Mode(mydata$targtype1_txt)
 mydata$targtype1_txt[which(mydata$targtype1_txt == '' | mydata$targtype1_txt == 'Unknown')] <- moda_target_type
 ```
+
 We now can see the result of the preprocess of this variable.
-```{r}
+
+```{r echo=F}
 mydata$targtype1_txt <- as.character(mydata$targtype1_txt)
 mydata$targtype1_txt <- as.factor(mydata$targtype1_txt)
 summary(mydata$targtype1_txt)
 ```
 
-#### 2.9. Variable natlty1_txt
-```{r}
+#### Variable natlty1_txt
+```{r include=F}
 summary(mydata$natlty1_txt)
 ```
-As we can see there are incorrect and null values. We convert all of them to Nan.
+
+As we can see with the results of summary command, there are incorrect and null values, so first of all we convert all of them to Nan.
+
 ```{r}
 mydata$natlty1_txt[which(mydata$natlty1_txt == '')] <- NA
 mydata$natlty1_txt[which(mydata$natlty1_txt == 'Tourists: Hernan Diego Mendoza, Diego Enrique Angelini, Alejandro Damian Pagnucco')] <- NA
@@ -224,64 +254,75 @@ mydata$natlty1_txt[which(mydata$natlty1_txt == 'Students')] <- NA
 mydata$natlty1_txt[which(mydata$natlty1_txt == 'unidentified white man')] <- NA
 mydata$natlty1_txt[which(mydata$natlty1_txt == 'William Long and Quinton I. Ezeagwula, soldiers who were outside of a military recruiting station')] <- NA
 ```
-We also simplify some values.
+
+Then we also simplify some values.
+
 ```{r}
 mydata$natlty1_txt[which(mydata$natlty1_txt == 'Multinational')] <- 'International'
 mydata$natlty1_txt[which(mydata$natlty1_txt == 'Virgin Islands (U.S.)')] <- 'United States'
 mydata$natlty1_txt[which(mydata$natlty1_txt == 'West Germany (FRG)')] <- 'Germany'
 mydata$natlty1_txt[which(mydata$natlty1_txt == 'Branch')] <- 'United States' # is a county in the U.S. state of Michigan
 ```
+
 We now can see the result of our preprocess in this variable.
-```{r}
+
+```{r echo=F}
 mydata$natlty1_txt <- as.character(mydata$natlty1_txt)
 mydata$natlty1_txt <- as.factor(mydata$natlty1_txt)
 summary(mydata$natlty1_txt)
 ```
 
-#### 2.10. Variable gname
-```{r}
+#### Variable gname
+```{r include=F}
 summary(mydata$gname)
 ```
+
 As we can see there some null values called Unknown. We convert them to Nan because we think that does not make sense to do any prediction or substitution.
+
 ```{r}
 mydata$gname[which(mydata$gname == 'Unknown')] <- NA
 mydata$gname[which(mydata$gname == '')] <- NA
 ```
-We now can see the result of our preprocess
-```{r}
+
+We now can see the result of our preprocess.
+
+```{r echo=F}
 mydata$gname <- as.character(mydata$gname)
 mydata$gname <- as.factor(mydata$gname)
 summary(mydata$gname)
 ```
 
-
-#### 2.11. Variable nperps
-```{r}
+#### Variable nperps
+```{r include=F}
 summary(mydata$nperps)
 ```
 ```{r}
 summary(as.factor(mydata$nperps))
 ```
+
 We can see that there are some missing values like -99 and some outliers like 200, 400. Also we think that value 0 maybe is a miss input of this variable, because we can't have a terrorist attack without perpetrators, so we consider this values as unknown.
+
 We will change the null values to NA and delete the outliers.
+
 ```{r}
 mydata$nperps[mydata$nperps == -99] <- NA
 mydata$nperps[mydata$nperps ==  0 ] <- NA
 mydata$nperps[mydata$nperps == 200] <- NA
 mydata$nperps[mydata$nperps == 400] <- NA
 ```
+
 We now can see the result of the preprocess of this variable.
-```{r}
+
+```{r echo=F}
 summary(mydata$nperps)
 ```
 
-```{r}
+```{r include=F}
 summary(as.factor(mydata$nperps))
 ```
 
-
-#### 2.12. Variable nperpcap
-```{r}
+#### Variable nperpcap
+```{r include=F}
 summary(mydata$nperpcap)
 ```
 ```{r}
@@ -289,88 +330,116 @@ summary(as.factor(mydata$nperpcap))
 ```
 
 We can see that there are a lot of -99 that we will need to convert to NA for consistency.
+
 ```{r}
 mydata$nperpcap[mydata$nperpcap == -99] <- NA
 ```
+
 We now can see the result of the preprocess of this variable.
-```{r}
+
+```{r echo=F}
 summary(mydata$nperpcap)
 ```
 
-
-#### 2.13. Variable claimed
+#### Variable claimed
 ```{r}
-summary(mydata$claimed)
+summary(as.factor(mydata$claimed))
 ```
+
 We can see that there are some missing values like -9 and -99. There are also strange values like 3 and 4 that make no sense. We will change all of them to NA.
+
 ```{r}
 mydata$claimed[mydata$claimed == -9] <- NA
 mydata$claimed[mydata$claimed == -99] <- NA
 mydata$claimed[mydata$claimed == 3] <- NA
 mydata$claimed[mydata$claimed == 4] <- NA
 ```
+
 We now can see the result of the preprocess of this variable.
-```{r}
+
+```{r echo=F}
 summary(mydata$claimed)
 ```
 
-#### 2.14. Variable claimmode_txt
-```{r}
+####. Variable claimmode_txt
+```{r include=F}
 summary(mydata$claimmode_txt)
 ```
+
 We can see that there are some values that make no sense like 0 and 1. We also have some missing values as Unknown and ''. We will now change all these values to NA.
+
 ```{r}
 mydata$claimmode_txt[mydata$claimmode_txt == '0'] <- NA
 mydata$claimmode_txt[mydata$claimmode_txt == '1'] <- NA
 mydata$claimmode_txt[mydata$claimmode_txt == 'Unknown'] <- NA
 mydata$claimmode_txt[mydata$claimmode_txt == ''] <- NA
 ```
+
 We now can see the result of the preprocess of this variable.
-```{r}
+
+```{r echo=F}
 mydata$claimmode_txt <- as.character(mydata$claimmode_txt)
 mydata$claimmode_txt <- as.factor(mydata$claimmode_txt)
 summary(mydata$claimmode_txt)
 ```
 
-#### 2.15. Variable weaptype1_txt
-```{r}
+#### Variable weaptype1_txt
+```{r include=F}
 summary(mydata$weaptype1_txt)
 ```
+
 We can see that the value 0 makes no sense. We also have some missing values as ''. We will now change all these values to NA.
+
 ```{r}
 mydata$weaptype1_txt[mydata$weaptype1_txt == '0'] <- NA
 mydata$weaptype1_txt[mydata$weaptype1_txt == ''] <- NA
 mydata$weaptype1_txt[mydata$weaptype1_txt == 'Unknown'] <- NA
 ```
-We also will simplify one factor
+
+We also will simplify one factor.
+
 ```{r}
 mydata$weaptype1_txt <- as.character(mydata$weaptype1_txt)
 mydata$weaptype1_txt[mydata$weaptype1_txt == 'Vehicle (not to include vehicle-borne explosives, i.e., car or truck bombs)'] <- 'Vehicle'
 mydata$weaptype1_txt <- as.factor(mydata$weaptype1_txt)
 ```
+
 We now can see the result of the preprocess of this variable.
-```{r}
+
+```{r echo=F}
 summary(mydata$weaptype1_txt)
 ```
 
 
-#### 2.16. Variable nkill
-```{r}
+#### Variable nkill
+```{r include=F}
 summary(mydata$nkill)
 ```
-We first analyze the two major numbers: 1383 and 1384
-```{r}
-subset(mydata, nkill == 1383)
+
+After looking on the results of the summary command we can see that variable has some problems as outliers and miss inputs.
+
+We first analyze the two major numbers: 1383 and 1384, our outliers.
+
+```{r echo=F}
+aux <- subset(mydata, nkill == 1383)
+aux <- aux[c('id','provstate','city','latitude','longitude','date')]
+aux
 ```
 
-```{r}
-subset(mydata, nkill == 1384)
+```{r echo=F}
+aux <- subset(mydata, nkill == 1384)
+aux <- aux[c('id','provstate','city','latitude','longitude','date')]
+aux
 ```
+
 Thanks to the date we assume that these attacks correspond to the 9/11. We consider these values as outliers because we want to analyse the usual terrorist attacks. So we will delete these rows.
+
 ```{r}
 mydata <- mydata[!(mydata$nkill==1383 | mydata$nkill==1384),]
 ```
-Also we can see that there are a lot wrongly introduced values. We will change them all to NA.
+
+Also we can see that there are a lot wrongly introduced values, we will change them all to NA.
+
 ```{r}
 mydata$nkill[mydata$nkill == ''] <- NA
 mydata$nkill[mydata$nkill == 'A knife and a vehicle were used in the attack.' ] <- NA
@@ -384,7 +453,9 @@ mydata$nkill[mydata$nkill == 'knives, machetes, meat cleavers, metal cutters' ] 
 mydata$nkill[mydata$nkill == 'ruger .22 caliber semi-automatic pistol' ] <- NA
 mydata$nkill[mydata$nkill == 'Shotgun; revolver; pipe bomb' ] <- NA
 ```
+
 Since the number of null values is small with respect to the total number of attacks, we will change these values by the median.
+
 ```{r}
 mydata$nkill <- as.character(mydata$nkill) # avoid unforeseen results
 mydata$nkill <- as.numeric(mydata$nkill)
@@ -392,75 +463,86 @@ nkill_without_nulls <- subset(mydata, !is.na(nkill))
 median_nkill <- median(nkill_without_nulls$nkill)
 mydata$nkill[which(is.na(mydata$nkill))] <- median_nkill
 ```
+
 We now can see the result of the preprocess of this variable.
-```{r}
+
+```{r echo=F}
 summary(mydata$nkill)
 ```
 
 
-#### 2.17. Variable nkillus
+####. Variable nkillus
 ```{r}
 summary(mydata$nkillus)
 ```
+
 As before, we substitute the nan values with the median.
+
 ```{r}
 nkillus_without_nulls <- subset(mydata, !is.na(nkillus))
 median_nkillus <- median(nkillus_without_nulls$nkillus)
 mydata$nkillus[which(is.na(mydata$nkillus))] <- median_nkillus
 ```
+
 We can now see the result of the preprocess of this variable.
-```{r}
+
+```{r echo=F}
 summary(mydata$nkillus)
 ```
 
 
-#### 2.18. Variable nkillter
+#### Variable nkillter
 ```{r}
 summary(mydata$nkillter)
 ```
-There is nothing to change in this variable beacuse the number of null values is huge.
+There is nothing to change in this variable because the number of null values is too huge and we don't want to risc more by replace then with median value.
 
-#### 2.19. Variable nwound
+#### Variable nwound
 ```{r}
 summary(mydata$nwound)
 ```
-```{r}
+```{r include=F}
 summary(as.factor(mydata$nwound))
 ```
-There is nothing to change in this variable beacuse the number of null values is huge.
 
-We will delete the outliers rows
+In this variable we decided not to change the NA values, because we do not have the reliable criteria to replace this values. 
+
+But after analyzing the summary, we were able to detect some outliers, so we will delete the outliers rows.
+
 ```{r}
-mydata <- mydata[!(mydata$nwound==650 | mydata$nwound==851),]
+mydata <- mydata[!(mydata$nwound==650 | mydata$nwound==751 | mydata$nwound==851),]
 ```
+
 We can now see the result of the preprocess of this variable.
-```{r}
+
+```{r echo=F}
 summary(mydata$nwound)
 ```
 
-#### 2.20. Variable nwoundus
+#### Variable nwoundus
 ```{r}
 summary(mydata$nwoundus)
 ```
-```{r}
+```{r include=F}
 summary(as.factor(mydata$nwoundus))
 ```
-There is nothing to do with the number of null values because there a lot of them.
 
+There is nothing to do with the number of null values because there a lot of them. Then we decided to leave this variable as it is now, and to treat the NA's later in the case that is necessary.
 
-
-#### 2.21. Variable nwoundte
+#### Variable nwoundte
 ```{r}
 summary(mydata$nwoundte)
 ```
-There is nothing to change in this variable bacause there a lot of null values.
 
-#### 2.22. Variable propvalue
-```{r}
+In this case it is the same as in the previous variable, so there is nothing to change in this variable because there are many null values.
+
+#### Variable propvalue
+```{r include=F}
 summary(mydata$propvalue)
 ```
 
-We can see that there are some values that make no sense such as the different sentences. We also have some missing values as -99 and ''. We will now change all these values to NA.
+We can see with summary, that there are some values that make no sense such as the different sentences. We also have some missing values as -99 and ''. We will now change all these values to NA.
+
 ```{r}
 mydata$propvalue[mydata$propvalue == '-99'] <- NA
 mydata$propvalue[mydata$propvalue == ''] <- NA
@@ -469,16 +551,19 @@ mydata$propvalue[mydata$propvalue == 'Major (likely >= $1 million but < $1 billi
 ```
 
 We can now see the result of the preprocess of this variable. We will not substitue with the null values because there a lot of them about the total number of attacks.
-```{r}
+
+```{r echo=F}
 summary(mydata$propvalue)
 ```
 
 
-#### 2.23. Variable INT_IDEO
-```{r}
+#### Variable INT_IDEO
+```{r include=F}
 summary(mydata$INT_IDEO)
 ```
+
 We can see that there are some values that make no sense such as the different sentences. We also have some missing values as -9. We will now change all these values to NA.
+
 ```{r}
 mydata$INT_IDEO[mydata$INT_IDEO == '-9'] <- NA
 mydata$INT_IDEO[mydata$INT_IDEO == ' revolutionary cells says it left the device at Shaklee in Pleasanton and threatens more violence,\\" Contra Costa Times October, 1 2003."'] <- NA
@@ -492,17 +577,20 @@ mydata$INT_IDEO[mydata$INT_IDEO == 'Hewitt Project'] <- NA
 mydata$INT_IDEO[mydata$INT_IDEO == 'START Primary Collection'] <- NA
 mydata$INT_IDEO[mydata$INT_IDEO == 'UMD Miscellaneous'] <- NA
 ```
+
 We can now see the result of the preprocess of this variable.
-```{r}
+
+```{r echo=F}
 mydata$INT_IDEO <- as.character(mydata$INT_IDEO)
 mydata$INT_IDEO <- as.factor(mydata$INT_IDEO)
 summary(mydata$INT_IDEO)
 ```
 
-#### 2.24. Variable INT_MISC
-```{r}
+#### Variable INT_MISC
+```{r include=F}
 summary(mydata$INT_MISC)
 ```
+
 We can see that there are some values that make no sense such as the different sentences. We also have some missing values as -9. We will now change all these values to NA.
 
 ```{r}
@@ -514,23 +602,27 @@ mydata$INT_MISC[mydata$INT_MISC == 'Legal Affairs Editors, \\Animal Liberation F
 ```
 
 We can now see the result of the preprocess of this variable.
-```{r}
+
+```{r echo=F}
 mydata$INT_MISC <- as.character(mydata$INT_MISC)
 mydata$INT_MISC <- as.factor(mydata$INT_MISC)
 summary(mydata$INT_MISC)
 ```
 
-#### 2.25. Variable president_party
+#### Variable president_party
 ```{r}
 summary(mydata$president_party)
 ```
-There is nothing to do with this variable.
 
-#### 2.26. Variable state_governor_party
-```{r}
+In this case it is a variable that we add to the dataset, so we consider there is nothing to do with this variable.
+
+#### Variable state_governor_party
+```{r include=F}
 summary(mydata$state_governor_party)
 ```
+
 We can see that there are some values that are typos like the Democratic instead of Democrat or Domecratic-Farmer-Labor instead of Democratic-Farmer-Labor. We also have some missing values as Nan that we will change into NA.
+
 ```{r}
 mydata$state_governor_party[mydata$state_governor_party == ''] <- NA
 mydata$state_governor_party[mydata$state_governor_party == 'Nan'] <- NA
@@ -539,23 +631,27 @@ mydata$state_governor_party[mydata$state_governor_party == 'Domecratic-Farmer-La
 ```
 
 We can now see the result of the preprocess of this variable.
-```{r}
+
+```{r echo=F}
 mydata$state_governor_party <- as.character(mydata$state_governor_party)
 mydata$state_governor_party <- as.factor(mydata$state_governor_party)
 summary(mydata$state_governor_party)
 ```
 
-#### 2.27. Variable date
-```{r}
+#### Variable date
+```{r include=F}
 summary(mydata$date)
 ```
 
 We create a sorted subset to see clearly if all the date values are correct.
-```{r}
+
+```{r echo=T, results='hide' }
 dateSubset <- mydata[c('id','date')]
 dateSubset[order(dateSubset$date),]
 ```
+
 As we can observe that there are some values that have an incorrect value in the day attribute, a zero. We convert these values to 1 because we are not taking into account this characteristic in our study: we will study the year attribute, not the day of the attack.
+
 ```{r}
 mydata$date <- as.character(mydata$date)
 mydata$date[which(mydata$date == '1-0-1981')] <- '1-1-1981'
@@ -583,37 +679,49 @@ mydata$date[which(mydata$date == '11-0-2010')] <- '11-1-2010'
 mydata$date[which(mydata$date == '12-0-1981')] <- '12-1-1981'
 mydata$date[which(mydata$date == '12-0-1992')] <- '12-1-1992'
 ```
-Now we can see the result of our preprocess in this variable.
-```{r}
+
+```{r include=F}
 dateSubset <- mydata[c('id','date')]
 dateSubset[order(dateSubset$date),]
 ```
 
-### 3. Delete rows with lots of null values
-We count the number of nulls in each row.
+### Delete rows with lots of null values
+
+After doing all these preprocessing steps for each variable, we have decided that we might be interested in deleting the rows that have a number of nulls per columns that exceed a limit that we set. For this we would do the following steps, but once trying to establish different limits we saw that the dataset was reduced considerably, therefore we have decided to neutralize this step by putting a limit equal to the number of columns in the way that we keep all the rows of the dataset.
+
+We have done that this way, because it is always possible to delete things later, but it would be difficult to recover them if necessary.
+
+So first, we count the number of nulls in each row.
+
 ```{r}
 na_count <- apply(mydata, 1, function(x) sum(is.na(x)))
 summary(na_count)
 ```
-We delete all rows with all the columns equal to Nan
+
+We delete all rows with all the columns equal to Nan.
+
 ```{r}
 mydata$na_count = na_count
 mydata<-mydata[!(mydata$na_count>27),]
 ```
-We can now see the result of our preprocess.
-```{r}
+
+```{r include=F}
 na_count <- apply(mydata, 1, function(x) sum(is.na(x)))
 summary(na_count)
-mydata$na_count <- NULL # we delete the column
+mydata$na_count <- NULL 
 ```
-The final dataset have the following rows
-```{r}
+
+We can now see the result of our preprocess. The final dataset have the following rows:
+
+```{r echo=F}
 nrow(mydata)
 ```
 
 
-### 4. Assigning the right type to each variable
-We change the types to the right ones.
+### Assigning the right type to each variable
+
+Final pass of our preprocessing is to change the types to the right ones.
+
 ```{r}
 mydata$id <- as.numeric(mydata$id)
 mydata$provstate <- as.factor(mydata$provstate)
@@ -651,13 +759,17 @@ mydata$president_party <- as.factor(mydata$president_party)
 mydata$state_governor_party <- as.factor(mydata$state_governor_party)
 mydata$date <- as.Date(mydata$date,format("%m-%d-%Y"))
 ```
-We can now check that all variables have the right type assigned
-```{r}
+
+We can now check that all variables have the right type assigned.
+
+```{r echo=F}
 sapply(mydata, class)
 ```
 
-### 5. Saving the preprocessed dataset
+### Saving the preprocessed dataset
+
 Finally we save our preprocessed dataset in a csv.
-```{r}
+
+```{r warning=F}
 write.csv(mydata, file = "preprocessed_dataset.csv")
 ```

@@ -1,42 +1,53 @@
 import pandas as pd
 
-def get_fips_state(state,fips_file):
-    for index, row in fips_file.iterrows():
-        if state==row['Name']:
-            return row['State (FIPS)']
-
-def generate_dictionary(file):
-    dictionary = { "cairo city" : "12400" }
+def generate_dictionary_fips_city(file):
+    dictionary = {}
     for index, row in file.iterrows():
-        city_name = str(row['Area Name']).lower()
-        if "city" in city_name:
-            if "city city" in city_name:
-                city_name = city_name.replace("city ", "")
-            dictionary[city_name] = row['Place Code (FIPS)']
+        city_name = row['city'].lower()
+        dictionary[city_name] = row['county_fips']
     return dictionary
 
-our_data = pd.read_csv('longitudeFixed.csv', sep=',')
-fips_f1 = pd.read_csv('state-geocodes-v2016.csv', sep=',')
-fips_f2 = pd.read_csv('all-geocodes-v2016.csv', sep=',')
+def generate_dictionary_fips_state(file):
+    dictionary = {}
+    for index, row in file.iterrows():
+        state_name = row['Name'].lower()
+        dictionary[state_name] = row['State (FIPS)']
+    return dictionary
 
-print('----------State codes:----------')
+data = pd.read_csv('../datasets/longitudeFixed.csv', sep=',')
+fips_city = pd.read_csv('../datasets/fips_codes_city.csv', sep=',') # https://simplemaps.com/data/us-cities
+fips_state = pd.read_csv('../datasets/fips_codes_state.csv', sep=',')
 
-for index, row in our_data.iterrows():
-    state = row['provstate']
-    fips = get_fips_state(state,fips_f1)
-    print(fips)
+dictionary_fips_city = generate_dictionary_fips_city(fips_city)
+dictionary_fips_state = generate_dictionary_fips_state(fips_state)
 
-dictionary_of_fips = generate_dictionary(fips_f2)
+array_fips_city = []
+array_fips_state = []
 
-print('----------City codes:----------')
+count__fips_city_inserted = 0
+count__fips_state_inserted = 0
 
-for index, row in our_data.iterrows():
-    city = row['city']
-    city = str(city).lower()
-    if not "city" in city:
-        city = city + " city"
-    if city in dictionary_of_fips:
-        fips = dictionary_of_fips[city]
-    else:
-        fips = "None"
-    print(fips)
+for index, row in data.iterrows():
+    
+    # city
+    city = str(row['city']).lower()
+    value = "NA"
+    if city in dictionary_fips_city:
+        value = dictionary_fips_city[city]
+        count__fips_city_inserted += 1
+    array_fips_city.append(value)
+    
+    # state
+    state = str(row['provstate']).lower()
+    value = "NA"
+    if state in dictionary_fips_state:
+        value = dictionary_fips_state[state]
+        count__fips_state_inserted += 1
+    array_fips_state.append(value)
+    
+
+data['city_fips'] = array_fips_city
+data['state_fips'] = array_fips_state
+total_rows = len(data.index)
+print('city nans -> ' + str(100-(count__fips_city_inserted/total_rows)*100) + '% ; state nans -> ' + str(100-(count__fips_state_inserted/total_rows)*100) + ' %')
+data.to_csv('../datasets/fips-codes-added.csv')

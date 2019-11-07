@@ -5,6 +5,7 @@ output:
     df_print: paged
   pdf_document: default
   word_document: default
+always_allow_html: yes
 title: "Descriptive statistics of variables after preprocessing"
 header-includes:
 - \usepackage{lscape}
@@ -33,8 +34,6 @@ Mode <- function(x) {
   ux[which.max(tabulate(match(x, ux)))]
 }
 ```
-
-In the same way as what we stated in “Description of the preprocessing made in each variable”, we have the explanations that correspond to this category alongside the code that can be found after.
 
 The structure of this file is similar to the previous ones: for each variable, we have a small section showing its results with a small analysis or observation of them. Not all variables have been modified, but since we deleted some rows, all of them are affected anyways, so we decided not to exclude any variable from this analysis, even if we’re only showing the small differences in their summary.
 
@@ -203,7 +202,7 @@ summary(mydata$nperps)
 The minimun value is 1 because it makes no sense that no perpetrator has commited a crime. In preprocessing we corrected those values by changing them to NA. 
 
 ```{r}
-boxplot(mydata$nperps)
+boxplot(mydata$nperps, main = "Boxplot of variable nperps")
 ```
 
 As we can see in this boxplot most of the acts of terrorism in the United States were perpetrated by individuals that worked alone.
@@ -227,7 +226,7 @@ summary(mydata$nperpcap)
 In this case the value 0 makes sense.
 
 ```{r}
-boxplot(mydata$nperpcap)
+boxplot(mydata$nperpcap, main = "Boxplot of variable nperpcap")
 ```
 
 As we can see in this boxplot most of the time 0, 1 or 2 perpetrators are captured.

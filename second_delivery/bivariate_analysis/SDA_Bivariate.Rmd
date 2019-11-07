@@ -1,12 +1,12 @@
 ---
 pdf_document: default
-#author: "Team 2 Group 11"
 output:
   html_document:
     df_print: paged
   pdf_document: default
   word_document: default
 title: "Bivariate statistical analysis of relevant variables"
+always_allow_html: yes
 header-includes:
 - \usepackage{lscape}
 - \newcommand{\blandscape}{\begin{landscape}}
@@ -14,9 +14,8 @@ header-includes:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(comment = NA)
 ```
-
 
 
 ```{r,include=FALSE, warning=FALSE}
@@ -37,7 +36,7 @@ mydata = read.csv("../../primera_entrega/datasets/preprocessed_dataset.csv")
 First we want to make an analysis and detect if there is a dependence between the variables attacktype1_txt and success.
 In order to do that, we make a table with the values of these two variables.
 
-```{r}
+```{r echo=F}
 aux = table(mydata$attacktype1_txt,mydata$success);
 SuccessRate=numeric(8);
 for (x in 1:8) {
@@ -129,7 +128,7 @@ So with the next table we can see that some big states as California, New York, 
 
 ```{r}
 aux2 = table(mydata$targtype1_txt,mydata$provstate);
-print(aux2)
+aux2
 ```
 
 And with this pie chart we can see that the most popular/common target types are:
@@ -393,7 +392,8 @@ In this analysis we want to identify in which states a given gname has committed
 ```{r,echo=FALSE}
 aux = mydata$provstate[mydata$gname == 'Anti-Abortion extremists']
 aux=as.data.frame(table(aux))
-plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie', height = 530)
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie', height = 530)%>%
+  layout(title = 'Pie Chart of Anti-Abortion extremists in different provstates')
 ```
 
 We can see that this group widely distributed their acts of terrorism over the states.
@@ -401,7 +401,8 @@ We can see that this group widely distributed their acts of terrorism over the s
 ```{r,echo=FALSE}
 aux = mydata$provstate[mydata$gname == 'Left-Wing Militants']
 aux=as.data.frame(table(aux))
-plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')%>%
+  layout(title = 'Pie Chart of Left-Wing Militants in different provstates')
 ```
 
 We can see that this group's acts were fairly distributed, although half of them were targeted to the two main victim states.
@@ -409,7 +410,8 @@ We can see that this group's acts were fairly distributed, although half of them
 ```{r,echo=FALSE}
 aux = mydata$provstate[mydata$gname == 'Fuerzas Armadas de Liberacion Nacional (FALN)']
 aux=as.data.frame(table(aux))
-plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')
+plot_ly(aux, labels = ~aux, values = ~Freq, type = 'pie')%>%
+  layout(title = 'Pie Chart of Fuerzas Armadas de Liberacion Nacional in different provstates')
 ```
 
 In this case we can clearly see that the acts were targeted towards the states of New York, Illinois and Puerto Rico.
